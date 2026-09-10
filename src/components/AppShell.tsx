@@ -1,3 +1,5 @@
+"use client";
+
 import { Building2, ClipboardCheck, Compass, FileText, FlaskConical, Inbox, LayoutDashboard, LogOut, PlusCircle, Users } from "lucide-react";
 import { logout } from "@/lib/actions/auth";
 import { roleLabels } from "@/lib/format";
