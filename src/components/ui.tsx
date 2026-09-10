@@ -231,7 +231,7 @@ export function Field({
 }
 
 export const inputCls =
-  "w-full rounded-2xl border border-black/10 bg-white/70 px-4 py-2.5 text-sm text-ink backdrop-blur-md transition-colors placeholder:text-ink-3 focus:border-accent/60 focus:outline-none focus:ring-4 focus:ring-accent/10 dark:border-white/10 dark:bg-white/5 dark:text-white";
+  "w-full resize-none rounded-2xl border border-black/10 bg-white/70 px-4 py-2.5 text-sm text-ink backdrop-blur-md transition-colors placeholder:text-ink-3 focus:border-accent/60 focus:outline-none focus:ring-4 focus:ring-accent/10 dark:border-white/10 dark:bg-white/5 dark:text-white";
 
 /* ---- State surfaces ------------------------------------------------------- */
 

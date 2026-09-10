@@ -57,7 +57,7 @@ export default async function StartupProfilePage() {
             <input type="text" name="locations" className={inputCls} defaultValue={profile?.locations ?? ""} placeholder="e.g. Mumbai, Pune, Bengaluru" />
           </Field>
           <Field label="Short Pitch (what you solve, how, and proof)">
-            <textarea name="pitch" rows={4} className={inputCls + " resize-none"} defaultValue={profile?.pitch ?? ""} />
+            <textarea name="pitch" rows={4} className={inputCls} defaultValue={profile?.pitch ?? ""} />
           </Field>
           {user.email && (
             <p className="text-xs text-ink-3">
