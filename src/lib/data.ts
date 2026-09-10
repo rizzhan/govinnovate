@@ -161,6 +161,12 @@ export function getStartupProfile(userId: number) {
     .get(userId) as Record<string, any> | undefined;
 }
 
+export function getAttachments(startupUserId: number) {
+  return db
+    .prepare("SELECT * FROM startup_attachments WHERE startup_user_id = ? ORDER BY id ASC")
+    .all(startupUserId) as Record<string, any>[];
+}
+
 export function getTemplates() {
   return db
     .prepare("SELECT * FROM templates ORDER BY category, id")

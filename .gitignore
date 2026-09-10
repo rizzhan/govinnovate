@@ -37,6 +37,10 @@ yarn-error.log*
 /data/
 /data.db
 
+# auto-generated local agent instructions (recreated by `next dev`)
+/AGENTS.md
+/CLAUDE.md
+
 # vercel
 .vercel
 

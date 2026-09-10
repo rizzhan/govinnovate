@@ -1,11 +1,13 @@
+import { ExternalLink, Paperclip, Plus, Trash2 } from "lucide-react";
 import { requireRole } from "@/lib/auth";
-import { getStartupProfile } from "@/lib/data";
-import { upsertStartupProfile } from "@/lib/actions/domain";
+import { getAttachments, getStartupProfile } from "@/lib/data";
+import { addAttachment, deleteAttachment, upsertStartupProfile } from "@/lib/actions/domain";
 import { Card, Field, inputCls, SubmitButton } from "@/components/ui";
 
 export default async function StartupProfilePage() {
   const user = await requireRole(["startup"]);
   const profile = getStartupProfile(user.id);
+  const attachments = getAttachments(user.id);
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -55,7 +57,7 @@ export default async function StartupProfilePage() {
             <input type="text" name="locations" className={inputCls} defaultValue={profile?.locations ?? ""} placeholder="e.g. Mumbai, Pune, Bengaluru" />
           </Field>
           <Field label="Short Pitch (what you solve, how, and proof)">
-            <textarea name="pitch" rows={4} className={inputCls} defaultValue={profile?.pitch ?? ""} />
+            <textarea name="pitch" rows={4} className={inputCls + " resize-none"} defaultValue={profile?.pitch ?? ""} />
           </Field>
           {user.email && (
             <p className="text-xs text-ink-3">
@@ -65,6 +67,78 @@ export default async function StartupProfilePage() {
           <div className="flex justify-end">
             <SubmitButton>Save Profile</SubmitButton>
           </div>
+        </form>
+      </Card>
+
+      <Card title="Proof & Attachments">
+        <p className="mb-4 text-sm text-ink-2">
+          Link evidence that backs your claims — deployment reports, certifications, demo videos or
+          press coverage. Evaluators and departments see these during screening.
+        </p>
+        {attachments.length === 0 ? (
+          <p className="rounded-2xl border border-dashed border-black/10 px-4 py-6 text-center text-sm text-ink-3 dark:border-white/10">
+            No attachments yet. Add your first proof link below.
+          </p>
+        ) : (
+          <ul className="divide-y divide-black/5 dark:divide-white/10">
+            {attachments.map((a) => (
+              <li key={a.id} className="flex items-center gap-3 py-2.5">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent">
+                  <Paperclip className="h-4 w-4" aria-hidden />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-ink">{a.label}</p>
+                  <a
+                    href={a.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex max-w-full items-center gap-1 truncate text-xs text-accent hover:text-accent-dark"
+                  >
+                    <span className="truncate">{String(a.url).replace(/^https?:\/\//, "")}</span>
+                    <ExternalLink className="h-3 w-3 shrink-0" aria-hidden />
+                  </a>
+                </div>
+                <form action={deleteAttachment} className="shrink-0">
+                  <input type="hidden" name="id" value={a.id} />
+                  <button
+                    type="submit"
+                    aria-label={`Remove ${a.label}`}
+                    title="Remove attachment"
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-full text-ink-3 transition-colors hover:bg-critical/10 hover:text-critical active:scale-95"
+                  >
+                    <Trash2 className="h-4 w-4" aria-hidden />
+                  </button>
+                </form>
+              </li>
+            ))}
+          </ul>
+        )}
+        <form action={addAttachment} className="mt-4 grid gap-3 border-t border-black/5 pt-4 sm:grid-cols-[1fr_1.4fr_auto] sm:items-end dark:border-white/10">
+          <Field label="Label">
+            <input
+              type="text"
+              name="label"
+              required
+              maxLength={120}
+              className={inputCls}
+              placeholder="e.g. Pilot deployment report"
+            />
+          </Field>
+          <Field label="Link (URL)">
+            <input
+              type="text"
+              name="url"
+              required
+              maxLength={500}
+              inputMode="url"
+              className={inputCls}
+              placeholder="https://…"
+            />
+          </Field>
+          <SubmitButton variant="secondary">
+            <Plus className="h-4 w-4" aria-hidden />
+            Add
+          </SubmitButton>
         </form>
       </Card>
     </div>

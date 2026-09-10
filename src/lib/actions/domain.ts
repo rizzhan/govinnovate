@@ -293,3 +293,22 @@ export async function deleteUser(formData: FormData) {
   revalidatePath("/admin");
   revalidatePath("/admin/users");
 }
+
+export async function addAttachment(formData: FormData) {
+  const user = await requireRole(["startup"]);
+  const label = String(formData.get("label") || "").trim().slice(0, 120);
+  let url = String(formData.get("url") || "").trim().slice(0, 500);
+  if (!label || !url) return;
+  if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(url)) url = "https://" + url;
+  db.prepare(
+    "INSERT INTO startup_attachments (startup_user_id, label, url) VALUES (?, ?, ?)"
+  ).run(user.id, label, url);
+  revalidatePath("/startup/profile");
+}
+
+export async function deleteAttachment(formData: FormData) {
+  const user = await requireRole(["startup"]);
+  const id = int(formData.get("id"));
+  db.prepare("DELETE FROM startup_attachments WHERE id=? AND startup_user_id=?").run(id, user.id);
+  revalidatePath("/startup/profile");
+}

@@ -181,7 +181,25 @@ function seedProfiles() {
   });
 }
 
+function seedAttachments() {
+  const insert = db.prepare(
+    `INSERT INTO startup_attachments (startup_user_id, label, url)
+     VALUES (?, ?, ?)`
+  );
+  insert.run(
+    3,
+    "Pilot deployment report — 5 urban lakes",
+    "https://aquasense.example.com/reports/lake-pilot"
+  );
+  insert.run(
+    3,
+    "DPIIT recognition certificate",
+    "https://aquasense.example.com/compliance/dpiit"
+  );
+}
+
 function seedApplications() {
+
   const insert = db.prepare(
     `INSERT INTO applications
       (challenge_id, startup_user_id, solution_summary, tech_readiness, differentiator, ask_amount, status)
@@ -482,13 +500,15 @@ export function seedAll() {
     DELETE FROM pilots;
     DELETE FROM evaluations;
     DELETE FROM applications;
+    DELETE FROM startup_attachments;
     DELETE FROM startup_profiles;
     DELETE FROM challenges;
     DELETE FROM users;
-    DELETE FROM sqlite_sequence WHERE name IN ('users','challenges','applications','pilots','milestones','scale_up_decisions');
+    DELETE FROM sqlite_sequence WHERE name IN ('users','challenges','applications','pilots','milestones','scale_up_decisions','startup_attachments');
   `);
   seedUsers();
   seedProfiles();
+  seedAttachments();
   seedChallenges();
   seedApplications();
   seedEvaluations();
