@@ -3,7 +3,7 @@ import { requireRole } from "@/lib/auth";
 import { getPilot, getMilestones, getScaleUpDecision } from "@/lib/data";
 import { notFound } from "next/navigation";
 import { Card, StatusBadge } from "@/components/ui";
-import { formatDate, formatINR, milestoneStatusLabels, milestoneStatusTone, pilotStatusLabels, pilotStatusTone } from "@/lib/format";
+import { formatDate, formatINR, milestoneStatusLabels, milestoneStatusTone, pilotStatusLabels, pilotStatusTone, scaleDecisionLabels } from "@/lib/format";
 import { milestoneStatusIcon, pilotStatusIcon } from "@/components/status";
 
 export default async function StartupPilotDetail({ params }: { params: Promise<{ id: string }> }) {
@@ -99,7 +99,7 @@ export default async function StartupPilotDetail({ params }: { params: Promise<{
         <Card title="Scale-Up Decision">
           <p className="inline-flex items-center gap-2 text-sm font-medium text-[#1f8a3d]">
             <Medal className="h-4 w-4" aria-hidden />
-            {scaleDecision.decision === "scale" ? "Scale Up recommended" : scaleDecision.decision}
+            {scaleDecisionLabels[scaleDecision.decision] ?? scaleDecision.decision}
           </p>
           <p className="mt-1.5 text-sm text-ink-2">{scaleDecision.validation_notes}</p>
         </Card>

@@ -3,7 +3,7 @@ import { requireRole } from "@/lib/auth";
 import { getPilot, getMilestones, getScaleUpDecision } from "@/lib/data";
 import { notFound } from "next/navigation";
 import { ButtonLink, Card, Field, inputCls, StatusBadge, SubmitButton } from "@/components/ui";
-import { formatDate, formatINR, milestoneStatusLabels, milestoneStatusTone, pilotStatusLabels, pilotStatusTone } from "@/lib/format";
+import { formatDate, formatINR, milestoneStatusLabels, milestoneStatusTone, pilotStatusLabels, pilotStatusTone, scaleDecisionLabels } from "@/lib/format";
 import { milestoneStatusIcon, pilotStatusIcon } from "@/components/status";
 import { addMilestone, submitScaleDecision, updateMilestone, updatePilotStatus } from "@/lib/actions/domain";
 
@@ -200,7 +200,7 @@ export default async function PilotDetail({ params }: { params: Promise<{ id: st
           <div className="rounded-2xl border border-verified/25 bg-verified/10 p-5">
             <p className="inline-flex items-center gap-2 text-sm font-medium text-[#1f8a3d]">
               <Medal className="h-4 w-4" aria-hidden />
-              Decision: {scaleDecision.decision === "scale" ? "Scale up" : scaleDecision.decision}
+              Decision: {scaleDecisionLabels[scaleDecision.decision] ?? scaleDecision.decision}
             </p>
             <p className="mt-1.5 text-sm text-ink-2">{scaleDecision.validation_notes}</p>
             <p className="mt-2 text-xs text-ink-3">

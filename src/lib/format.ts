@@ -60,6 +60,14 @@ export const milestoneStatusTone: Record<string, StatusTone> = {
   paid: "success",
 };
 
+export const scaleDecisionLabels: Record<string, string> = {
+  scale: "Scale up",
+  in_progress: "In progress",
+  trial: "Extend pilot",
+  not_scale: "Do not scale",
+  pending: "Pending",
+};
+
 export function formatINR(amount: number | null | undefined): string {
   const n = amount ?? 0;
   return "₹" + n.toLocaleString("en-IN", { maximumFractionDigits: 0 });
