@@ -10,10 +10,10 @@ import { ApplyForm } from "./apply-form";
 export default async function StartupChallengeDetail({ params }: { params: Promise<{ id: string }> }) {
   const user = await requireRole(["startup"]);
   const { id } = await params;
-  const challenge = getChallenge(Number(id));
+  const challenge = await getChallenge(Number(id));
   if (!challenge) notFound();
 
-  const myApps = getApplications({ startupUserId: user.id, challengeId: challenge.id });
+  const myApps = await getApplications({ startupUserId: user.id, challengeId: challenge.id });
   const myApp = myApps[0];
   const info = challengeStatusLabels[challenge.status] ?? { label: challenge.status, tone: "neutral" as const };
 

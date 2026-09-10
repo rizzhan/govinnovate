@@ -9,12 +9,12 @@ import { milestoneStatusIcon, pilotStatusIcon } from "@/components/status";
 export default async function StartupPilotDetail({ params }: { params: Promise<{ id: string }> }) {
   const user = await requireRole(["startup"]);
   const { id } = await params;
-  const pilot = getPilot(Number(id));
+  const pilot = await getPilot(Number(id));
   if (!pilot) notFound();
   if (pilot.startup_user_id !== user.id) notFound();
 
-  const milestones = getMilestones(pilot.id);
-  const scaleDecision = getScaleUpDecision(pilot.id);
+  const milestones = await getMilestones(pilot.id);
+  const scaleDecision = await getScaleUpDecision(pilot.id);
   const received = milestones.reduce((s, m) => s + (m.status === "paid" ? Number(m.amount) : 0), 0);
 
   return (

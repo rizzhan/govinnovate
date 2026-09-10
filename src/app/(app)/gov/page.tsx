@@ -21,9 +21,9 @@ import { publishChallenge, deleteChallenge } from "@/lib/actions/domain";
 
 export default async function GovDashboard() {
   const user = await requireRole(["government"]);
-  const challenges = getChallenges({ by: user.id });
-  const applications = getApplications();
-  const pilots = getPilots();
+  const challenges = await getChallenges({ by: user.id });
+  const applications = await getApplications();
+  const pilots = await getPilots();
 
   const openChallenges = challenges.filter((c) => c.status === "open").length;
   const activePilots = pilots.filter((p) => p.status === "active" || p.status === "design" || p.status === "scaling").length;

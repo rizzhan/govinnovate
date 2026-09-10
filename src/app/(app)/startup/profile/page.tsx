@@ -6,8 +6,8 @@ import { Card, Field, inputCls, SubmitButton } from "@/components/ui";
 
 export default async function StartupProfilePage() {
   const user = await requireRole(["startup"]);
-  const profile = getStartupProfile(user.id);
-  const attachments = getAttachments(user.id);
+  const profile = await getStartupProfile(user.id);
+  const attachments = await getAttachments(user.id);
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">

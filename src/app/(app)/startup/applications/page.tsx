@@ -7,7 +7,7 @@ import { applicationStatusIcon } from "@/components/status";
 
 export default async function StartupApplications() {
   const user = await requireRole(["startup"]);
-  const apps = getApplications({ startupUserId: user.id });
+  const apps = await getApplications({ startupUserId: user.id });
 
   return (
     <div className="space-y-6">

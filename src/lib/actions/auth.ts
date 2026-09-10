@@ -1,9 +1,11 @@
 "use server";
 
-import { db } from "../db";
 import bcrypt from "bcryptjs";
 import { redirect } from "next/navigation";
+import { getDb, Doc } from "../db";
 import { createSession, deleteSession } from "../session";
+import { checkRateLimit } from "../rate-limit";
+import { normalizeEmail } from "../validate";
 
 export type LoginState = {
   error?: string;
@@ -26,18 +28,24 @@ function getHomeForRole(role: string) {
 }
 
 export async function login(_prev: LoginState, formData: FormData) {
-  const email = String(formData.get("email") || "").trim().toLowerCase();
+  const email = normalizeEmail(formData.get("email"));
   const password = String(formData.get("password") || "");
 
   if (!email || !password) {
     return { error: "Email and password are required.", email };
   }
 
-  const user = db
-    .prepare("SELECT * FROM users WHERE email = ?")
-    .get(email) as
-    | { id: number; name: string; email: string; password_hash: string; role: string }
-    | undefined;
+  // Brute-force protection: per-account window (10 attempts / 10 min).
+  // Network-level throttling belongs at the edge (Vercel Firewall,
+  // Cloudflare, nginx) in front of multi-instance deployments.
+  if (!checkRateLimit(`login:email:${email}`, 10, 10 * 60 * 1000).ok) {
+    return { error: "Too many sign-in attempts for this account. Please try again in a few minutes.", email };
+  }
+
+  const db = await getDb();
+  const user = (await db.collection<Doc>("users").findOne({ email })) as
+    | { _id: number; name: string; email: string; password_hash: string; role: string }
+    | null;
 
   if (!user) {
     return { error: "No account found with that email.", email };
@@ -48,7 +56,7 @@ export async function login(_prev: LoginState, formData: FormData) {
     return { error: "Incorrect password.", email };
   }
 
-  await createSession(user.id, user.role as any, user.name);
+  await createSession(user._id, user.role as any, user.name);
   redirect(getHomeForRole(user.role));
 }
 

@@ -8,10 +8,10 @@ import { createPilot } from "@/lib/actions/domain";
 export default async function PilotFormPage({ params }: { params: Promise<{ id: string }> }) {
   await requireRole(["government"]);
   const { id: appId } = await params;
-  const app = getApplication(Number(appId));
+  const app = await getApplication(Number(appId));
   if (!app || app.status !== "shortlisted") notFound();
 
-  const existing = getPilots().find((p) => p.application_id === app.id);
+  const existing = (await getPilots()).find((p) => p.application_id === app.id);
   const suggestedBudget = Math.round((app.ask_amount || 2500000) * 0.4);
 
   return (

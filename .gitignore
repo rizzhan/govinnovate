@@ -41,6 +41,12 @@ yarn-error.log*
 /AGENTS.md
 /CLAUDE.md
 
+# playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache
+
 # vercel
 .vercel
 

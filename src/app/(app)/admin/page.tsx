@@ -30,9 +30,9 @@ const lifecycle = [
 
 export default async function AdminDashboard() {
   await requireRole(["admin"]);
-  const stats = getStats();
-  const challenges = getChallenges();
-  const pilots = getPilots();
+  const stats = await getStats();
+  const challenges = await getChallenges();
+  const pilots = await getPilots();
   const totalPilotValue = pilots.reduce((s, p) => s + Number(p.budget || 0), 0);
 
   const statusCounts = challenges.reduce<Record<string, number>>((acc, c) => {

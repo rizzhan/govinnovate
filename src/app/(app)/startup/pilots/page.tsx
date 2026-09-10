@@ -7,7 +7,10 @@ import { pilotStatusIcon } from "@/components/status";
 
 export default async function StartupPilots() {
   const user = await requireRole(["startup"]);
-  const pilots = getPilots({ startupUserId: user.id });
+  const pilots = await getPilots({ startupUserId: user.id });
+  const msByPilot = new Map<number, Awaited<ReturnType<typeof getMilestones>>>(
+    await Promise.all(pilots.map(async (p) => [p.id, await getMilestones(p.id)] as const))
+  );
 
   return (
     <div className="space-y-6">
@@ -27,7 +30,7 @@ export default async function StartupPilots() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
           {pilots.map((p) => {
-            const ms = getMilestones(p.id);
+            const ms = msByPilot.get(p.id) ?? [];
             const paid = ms.filter((m) => m.status === "paid");
             const next = ms.find((m) => m.status === "pending" || m.status === "verified");
             return (

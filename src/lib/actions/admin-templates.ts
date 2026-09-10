@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { db } from "../db";
+import { getDb, getNextId, nowIso, Doc } from "../db";
 import { requireRole } from "../auth";
 
 function int(v: FormDataEntryValue | null): number {
@@ -11,16 +11,16 @@ function int(v: FormDataEntryValue | null): number {
 
 export async function addTemplate(formData: FormData) {
   await requireRole(["admin"]);
-  db.prepare(
-    `INSERT INTO templates (title, category, description, content, icon)
-     VALUES (?, ?, ?, ?, ?)`
-  ).run(
-    String(formData.get("title") || ""),
-    String(formData.get("category") || "Pilot"),
-    String(formData.get("description") || ""),
-    String(formData.get("content") || ""),
-    String(formData.get("icon") || "file-text")
-  );
+  const db = await getDb();
+  await db.collection<Doc>("templates").insertOne({
+    _id: await getNextId("templates"),
+    title: String(formData.get("title") || ""),
+    category: String(formData.get("category") || "Pilot"),
+    description: String(formData.get("description") || ""),
+    content: String(formData.get("content") || ""),
+    icon: String(formData.get("icon") || "file-text"),
+    created_at: nowIso(),
+  });
   revalidatePath("/admin");
   revalidatePath("/admin/templates");
   revalidatePath("/templates");
@@ -28,7 +28,8 @@ export async function addTemplate(formData: FormData) {
 
 export async function deleteTemplate(formData: FormData) {
   await requireRole(["admin"]);
-  db.prepare("DELETE FROM templates WHERE id=?").run(int(formData.get("id")));
+  const db = await getDb();
+  await db.collection<Doc>("templates").deleteOne({ _id: int(formData.get("id")) });
   revalidatePath("/admin");
   revalidatePath("/admin/templates");
   revalidatePath("/templates");

@@ -17,11 +17,11 @@ import { publishChallenge } from "@/lib/actions/domain";
 export default async function ChallengeDetail({ params }: { params: Promise<{ id: string }> }) {
   await requireRole(["government"]);
   const { id } = await params;
-  const challenge = getChallenge(Number(id));
+  const challenge = await getChallenge(Number(id));
   if (!challenge) notFound();
 
-  const applications = getApplications({ challengeId: challenge.id });
-  const pilots = getPilots({ challengeId: challenge.id });
+  const applications = await getApplications({ challengeId: challenge.id });
+  const pilots = await getPilots({ challengeId: challenge.id });
   const info =
     challengeStatusLabels[challenge.status] ?? { label: challenge.status, tone: "neutral" as const };
 

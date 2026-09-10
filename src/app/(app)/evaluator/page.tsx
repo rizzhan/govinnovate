@@ -8,8 +8,16 @@ import { EvaluationSummary } from "./evaluation-summary";
 
 export default async function EvaluatorDashboard() {
   const user = await requireRole(["evaluator"]);
-  const shortlisted = getApplications({ status: "shortlisted" });
-  const submitted = getApplications({ status: "submitted" });
+  const shortlisted = await getApplications({ status: "shortlisted" });
+  const submitted = await getApplications({ status: "submitted" });
+  const myEvals = new Map<number, Record<string, any> | undefined>(
+    await Promise.all(
+      shortlisted.map(async (a) => {
+        const evals = await getEvaluationsForApplication(a.id);
+        return [a.id, evals.find((e) => e.evaluator_user_id === user.id)] as const;
+      })
+    )
+  );
 
   return (
     <div className="space-y-6">
@@ -30,7 +38,7 @@ export default async function EvaluatorDashboard() {
         ) : (
           <div className="space-y-4">
             {shortlisted.map((a) => {
-              const myEval = getEvaluationsForApplication(a.id).find((e) => e.evaluator_user_id === user.id);
+              const myEval = myEvals.get(a.id);
               return (
                 <div key={a.id} className="glass-chip rounded-2xl p-4">
                   <div className="flex items-start justify-between gap-3">

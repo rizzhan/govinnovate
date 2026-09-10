@@ -6,7 +6,7 @@ import { createUser, updateUserRole, deleteUser } from "@/lib/actions/domain";
 
 export default async function AdminUsers() {
   await requireRole(["admin"]);
-  const users = getAllUsers();
+  const users = await getAllUsers();
 
   return (
     <div className="space-y-6">

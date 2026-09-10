@@ -7,8 +7,8 @@ import { challengeStatusIcon } from "@/components/status";
 
 export default async function StartupChallenges() {
   const user = await requireRole(["startup"]);
-  const challenges = getChallenges();
-  const myApps = getApplications({ startupUserId: user.id });
+  const challenges = await getChallenges();
+  const myApps = await getApplications({ startupUserId: user.id });
 
   return (
     <div className="space-y-6">

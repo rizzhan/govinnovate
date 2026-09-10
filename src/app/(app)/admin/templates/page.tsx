@@ -9,7 +9,7 @@ const categories = ["Challenge", "Evaluation", "Pilot", "Legal & Compliance", "P
 
 export default async function AdminTemplates() {
   await requireRole(["admin"]);
-  const templates = getTemplates();
+  const templates = await getTemplates();
 
   return (
     <div className="space-y-6">

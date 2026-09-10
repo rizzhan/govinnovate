@@ -1,4 +1,4 @@
-import { db } from "./db";
+import { col } from "./db";
 
 export type Challenge = {
   id: number;
@@ -27,177 +27,216 @@ export type Application = {
   submitted_at: string;
 };
 
-export function getChallenges(opts?: { by?: number; status?: string }) {
-  let sql = `SELECT * FROM challenges WHERE 1=1`;
-  const params: any[] = [];
-  if (opts?.by) {
-    sql += ` AND created_by = ?`;
-    params.push(opts.by);
-  }
-  if (opts?.status) {
-    sql += ` AND status = ?`;
-    params.push(opts.status);
-  }
-  sql += ` ORDER BY id DESC`;
-  return db.prepare(sql).all(...params) as Challenge[];
+export type ApplicationListItem = Application & {
+  challenge_title: string;
+  startup_name: string;
+  department: string;
+};
+
+export type ApplicationDetail = Application & {
+  challenge_title: string;
+  department: string;
+  startup_name: string;
+  startup_email: string;
+  startup_org: string;
+  startup_designation: string;
+};
+
+/** Converts a {_id, ...rest} Mongo doc to the {id, ...rest} app shape. */
+function shaped<T>(doc: Record<string, any> | null | undefined): T | undefined {
+  if (!doc) return undefined;
+  const { _id, ...rest } = doc;
+  return { id: _id, ...rest } as T;
 }
 
-export function getChallenge(id: number) {
-  return db.prepare("SELECT * FROM challenges WHERE id = ?").get(id) as
-    | Challenge
-    | undefined;
+export async function getChallenges(opts?: { by?: number; status?: string }) {
+  const challenges = await col<Challenge>("challenges");
+  const q: Record<string, any> = {};
+  if (opts?.by) q.created_by = opts.by;
+  if (opts?.status) q.status = opts.status;
+  const docs = await challenges.find(q).sort({ _id: -1 }).toArray();
+  return docs.map((d) => shaped<Challenge>(d) as Challenge);
 }
 
-export function getApplications(opts?: { challengeId?: number; startupUserId?: number; status?: string }) {
-  let sql = `SELECT a.*, c.title AS challenge_title, u.name AS startup_name, c.department AS department
-             FROM applications a
-             JOIN challenges c ON c.id = a.challenge_id
-             JOIN users u ON u.id = a.startup_user_id
-             WHERE 1=1`;
-  const params: any[] = [];
-  if (opts?.challengeId) {
-    sql += ` AND a.challenge_id = ?`;
-    params.push(opts.challengeId);
-  }
-  if (opts?.startupUserId) {
-    sql += ` AND a.startup_user_id = ?`;
-    params.push(opts.startupUserId);
-  }
-  if (opts?.status) {
-    sql += ` AND a.status = ?`;
-    params.push(opts.status);
-  }
-  sql += ` ORDER BY a.id DESC`;
-  return db.prepare(sql).all(...params) as (Application & {
-    challenge_title: string;
-    startup_name: string;
-    department: string;
-  })[];
+export async function getChallenge(id: number) {
+  const challenges = await col<Challenge>("challenges");
+  return shaped<Challenge>(await challenges.findOne({ _id: id }));
 }
 
-export function getApplication(id: number) {
-  return db
-    .prepare(
-      `SELECT a.*, c.title AS challenge_title, c.department AS department,
-              u.name AS startup_name, u.email AS startup_email, u.org AS startup_org,
-              u.designation AS startup_designation
-       FROM applications a
-       JOIN challenges c ON c.id = a.challenge_id
-       JOIN users u ON u.id = a.startup_user_id
-       WHERE a.id = ?`
-    )
-    .get(id) as
-    | (Application & {
-        challenge_title: string;
-        department: string;
-        startup_name: string;
-        startup_email: string;
-        startup_org: string;
-        startup_designation: string;
-      })
-    | undefined;
+export async function getApplications(opts?: { challengeId?: number; startupUserId?: number; status?: string }) {
+  const applications = await col<Application>("applications");
+  const q: Record<string, any> = {};
+  if (opts?.challengeId) q.challenge_id = opts.challengeId;
+  if (opts?.startupUserId) q.startup_user_id = opts.startupUserId;
+  if (opts?.status) q.status = opts.status;
+  const apps = await applications.find(q).sort({ _id: -1 }).toArray();
+  if (apps.length === 0) return [];
+  const challengeIds = [...new Set(apps.map((a) => a.challenge_id))];
+  const userIds = [...new Set(apps.map((a) => a.startup_user_id))];
+  const [challenges, users] = await Promise.all([
+    (await col<Challenge>("challenges")).find({ _id: { $in: challengeIds } }).toArray(),
+    (await col("users")).find({ _id: { $in: userIds } }).project({ name: 1 }).toArray(),
+  ]);
+  const cMap = new Map<number, Challenge>(challenges.map((c) => [c._id, c]));
+  const uMap = new Map<number, any>(users.map((u) => [u._id, u]));
+  return apps.map((a): ApplicationListItem => {
+    const c = cMap.get(a.challenge_id);
+    const u = uMap.get(a.startup_user_id);
+    const { _id } = a;
+    const fields = { ...a } as unknown as Omit<Application, "id">;
+    return {
+      ...fields,
+      id: _id,
+      challenge_title: c?.title ?? "",
+      startup_name: u?.name ?? "",
+      department: c?.department ?? "",
+    };
+  });
 }
 
-export function getEvaluationsForApplication(applicationId: number) {
-  return db
-    .prepare(
-      `SELECT e.*, u.name AS evaluator_name, u.org AS evaluator_org
-       FROM evaluations e JOIN users u ON u.id = e.evaluator_user_id
-       WHERE e.application_id = ?`
-    )
-    .all(applicationId) as (Record<string, any> & { evaluator_name: string })[];
-}
-
-export function getPilots(opts?: { startupUserId?: number; challengeId?: number }) {
-  let sql = `SELECT p.*, c.title AS challenge_title, c.department AS department, u.name AS startup_name
-             FROM pilots p
-             JOIN challenges c ON c.id = p.challenge_id
-             JOIN users u ON u.id = p.startup_user_id
-             WHERE 1=1`;
-  const params: any[] = [];
-  if (opts?.startupUserId) {
-    sql += ` AND p.startup_user_id = ?`;
-    params.push(opts.startupUserId);
-  }
-  if (opts?.challengeId) {
-    sql += ` AND p.challenge_id = ?`;
-    params.push(opts.challengeId);
-  }
-  sql += ` ORDER BY p.id DESC`;
-  return db.prepare(sql).all(...params) as (Record<string, any> & {
-    challenge_title: string;
-    startup_name: string;
-  })[];
-}
-
-export function getPilot(id: number) {
-  return db
-    .prepare(
-      `SELECT p.*, c.title AS challenge_title, c.department AS department,
-              u.name AS startup_name, u.email AS startup_email
-       FROM pilots p
-       JOIN challenges c ON c.id = p.challenge_id
-       JOIN users u ON u.id = p.startup_user_id
-       WHERE p.id = ?`
-    )
-    .get(id) as Record<string, any> | undefined;
-}
-
-export function getMilestones(pilotId: number) {
-  return db
-    .prepare("SELECT * FROM milestones WHERE pilot_id = ? ORDER BY id ASC")
-    .all(pilotId) as Record<string, any>[];
-}
-
-export function getScaleUpDecision(pilotId: number) {
-  return db
-    .prepare("SELECT * FROM scale_up_decisions WHERE pilot_id = ? ORDER BY id DESC LIMIT 1")
-    .get(pilotId) as Record<string, any> | undefined;
-}
-
-export function getStartupProfile(userId: number) {
-  return db
-    .prepare("SELECT * FROM startup_profiles WHERE user_id = ?")
-    .get(userId) as Record<string, any> | undefined;
-}
-
-export function getAttachments(startupUserId: number) {
-  return db
-    .prepare("SELECT * FROM startup_attachments WHERE startup_user_id = ? ORDER BY id ASC")
-    .all(startupUserId) as Record<string, any>[];
-}
-
-export function getTemplates() {
-  return db
-    .prepare("SELECT * FROM templates ORDER BY category, id")
-    .all() as Record<string, any>[];
-}
-
-export function getTemplate(id: number) {
-  return db.prepare("SELECT * FROM templates WHERE id = ?").get(id) as
-    | Record<string, any>
-    | undefined;
-}
-
-export function getAllUsers() {
-  return db
-    .prepare("SELECT id, name, email, role, org, department FROM users ORDER BY id")
-    .all() as Record<string, any>[];
-}
-
-export function getStats() {
-  const challenges = db.prepare("SELECT COUNT(*) c FROM challenges").get() as any;
-  const applications = db.prepare("SELECT COUNT(*) c FROM applications").get() as any;
-  const pilots = db.prepare("SELECT COUNT(*) c FROM pilots").get() as any;
-  const startups = db
-    .prepare("SELECT COUNT(*) c FROM users WHERE role='startup'")
-    .get() as any;
-  const templates = db.prepare("SELECT COUNT(*) c FROM templates").get() as any;
+export async function getApplication(id: number) {
+  const applications = await col<Application>("applications");
+  const a = await applications.findOne({ _id: id });
+  if (!a) return undefined;
+  const [c, u] = await Promise.all([
+    (await col<Challenge>("challenges")).findOne({ _id: a.challenge_id }),
+    (await col("users")).findOne({ _id: a.startup_user_id }),
+  ]);
+  const { _id } = a;
+  const fields = { ...a } as unknown as Omit<Application, "id">;
   return {
-    challenges: challenges.c,
-    applications: applications.c,
-    pilots: pilots.c,
-    startups: startups.c,
-    templates: templates.c,
+    ...fields,
+    id: _id,
+    challenge_title: c?.title ?? "",
+    department: c?.department ?? "",
+    startup_name: u?.name ?? "",
+    startup_email: u?.email ?? "",
+    startup_org: u?.org ?? "",
+    startup_designation: u?.designation ?? "",
   };
+}
+
+export async function getEvaluationsForApplication(applicationId: number) {
+  const evaluations = await col("evaluations");
+  const evals = await evaluations.find({ application_id: applicationId }).toArray();
+  if (evals.length === 0) return [];
+  const userIds = [...new Set(evals.map((e) => e.evaluator_user_id))];
+  const users = await (await col("users"))
+    .find({ _id: { $in: userIds } })
+    .project({ name: 1, org: 1 })
+    .toArray();
+  const uMap = new Map<number, any>(users.map((u) => [u._id, u]));
+  return evals.map((e) => {
+    const u = uMap.get(e.evaluator_user_id);
+    const { _id, ...rest } = e;
+    return { id: _id, ...rest, evaluator_name: u?.name ?? "", evaluator_org: u?.org ?? "" };
+  }) as (Record<string, any> & { evaluator_name: string })[];
+}
+
+export async function getPilots(opts?: { startupUserId?: number; challengeId?: number }) {
+  const pilots = await col("pilots");
+  const q: Record<string, any> = {};
+  if (opts?.startupUserId) q.startup_user_id = opts.startupUserId;
+  if (opts?.challengeId) q.challenge_id = opts.challengeId;
+  const docs = await pilots.find(q).sort({ _id: -1 }).toArray();
+  if (docs.length === 0) return [];
+  const challengeIds = [...new Set(docs.map((p) => p.challenge_id))];
+  const userIds = [...new Set(docs.map((p) => p.startup_user_id))];
+  const [challenges, users] = await Promise.all([
+    (await col<Challenge>("challenges")).find({ _id: { $in: challengeIds } }).toArray(),
+    (await col("users")).find({ _id: { $in: userIds } }).project({ name: 1 }).toArray(),
+  ]);
+  const cMap = new Map<number, any>(challenges.map((c) => [c._id, c]));
+  const uMap = new Map<number, any>(users.map((u) => [u._id, u]));
+  return docs.map((p) => {
+    const { _id, ...rest } = p;
+    return {
+      id: _id,
+      ...rest,
+      challenge_title: cMap.get(p.challenge_id)?.title ?? "",
+      department: cMap.get(p.challenge_id)?.department ?? "",
+      startup_name: uMap.get(p.startup_user_id)?.name ?? "",
+    };
+  }) as (Record<string, any> & { challenge_title: string; startup_name: string })[];
+}
+
+export async function getPilot(id: number) {
+  const pilots = await col("pilots");
+  const p = await pilots.findOne({ _id: id });
+  if (!p) return undefined;
+  const [c, u] = await Promise.all([
+    (await col<Challenge>("challenges")).findOne({ _id: p.challenge_id }),
+    (await col("users")).findOne({ _id: p.startup_user_id }),
+  ]);
+  const { _id, ...rest } = p;
+  return {
+    id: _id,
+    ...rest,
+    challenge_title: c?.title ?? "",
+    department: c?.department ?? "",
+    startup_name: u?.name ?? "",
+    startup_email: u?.email ?? "",
+  } as Record<string, any>;
+}
+
+export async function getMilestones(pilotId: number) {
+  const milestones = await col("milestones");
+  const docs = await milestones.find({ pilot_id: pilotId }).sort({ _id: 1 }).toArray();
+  return docs.map((d) => shaped<Record<string, any>>(d) as Record<string, any>);
+}
+
+export async function getScaleUpDecision(pilotId: number) {
+  const decisions = await col("scale_up_decisions");
+  const docs = await decisions.find({ pilot_id: pilotId }).sort({ _id: -1 }).limit(1).toArray();
+  return shaped<Record<string, any>>(docs[0]);
+}
+
+export async function getStartupProfile(userId: number) {
+  const profiles = await col("startup_profiles");
+  return shaped<Record<string, any>>(await profiles.findOne({ user_id: userId }));
+}
+
+export async function getAttachments(startupUserId: number) {
+  const attachments = await col("startup_attachments");
+  const docs = await attachments.find({ startup_user_id: startupUserId }).sort({ _id: 1 }).toArray();
+  return docs.map((d) => shaped<Record<string, any>>(d) as Record<string, any>);
+}
+
+export async function getTemplates() {
+  const templates = await col("templates");
+  const docs = await templates.find({}).sort({ category: 1, _id: 1 }).toArray();
+  return docs.map((d) => shaped<Record<string, any>>(d) as Record<string, any>);
+}
+
+export async function getTemplate(id: number) {
+  const templates = await col("templates");
+  return shaped<Record<string, any>>(await templates.findOne({ _id: id }));
+}
+
+export async function getAllUsers() {
+  const users = await col("users");
+  const docs = await users
+    .find({})
+    .project({ name: 1, email: 1, role: 1, org: 1, department: 1 })
+    .sort({ _id: 1 })
+    .toArray();
+  return docs.map((d) => shaped<Record<string, any>>(d) as Record<string, any>);
+}
+
+export async function getStats() {
+  const [challenges, applications, pilots, users, templates] = await Promise.all([
+    col("challenges"),
+    col("applications"),
+    col("pilots"),
+    col("users"),
+    col("templates"),
+  ]);
+  const [c, a, p, s, t] = await Promise.all([
+    challenges.countDocuments(),
+    applications.countDocuments(),
+    pilots.countDocuments(),
+    users.countDocuments({ role: "startup" }),
+    templates.countDocuments(),
+  ]);
+  return { challenges: c, applications: a, pilots: p, startups: s, templates: t };
 }

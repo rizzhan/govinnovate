@@ -13,8 +13,8 @@ export default async function GovApplications({
   await requireRole(["government"]);
   const sp = await searchParams;
   const challengeId = sp.challenge ? Number(sp.challenge) : undefined;
-  const apps = getApplications(challengeId ? { challengeId } : undefined);
-  const challenge = challengeId ? getChallenge(challengeId) : undefined;
+  const apps = await getApplications(challengeId ? { challengeId } : undefined);
+  const challenge = challengeId ? await getChallenge(challengeId) : undefined;
 
   return (
     <div className="space-y-6">

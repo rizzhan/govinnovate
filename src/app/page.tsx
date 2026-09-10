@@ -32,13 +32,16 @@ import {
   type KpiRow,
 } from "@/components/landing/Previews";
 
+// Database-backed: always render fresh (and never query at build time).
+export const dynamic = "force-dynamic";
+
 export default async function LandingPage() {
-  const raw = getStats();
-  const challenges = getChallenges();
-  const applications = getApplications();
-  const pilots = getPilots();
-  const allUsers = getAllUsers();
-  const templates = getTemplates();
+  const raw = await getStats();
+  const challenges = await getChallenges();
+  const applications = await getApplications();
+  const pilots = await getPilots();
+  const allUsers = await getAllUsers();
+  const templates = await getTemplates();
 
   const eligible = applications.filter((a) => a.status !== "rejected" && a.status !== "withdrawn").length;
   const scaled = challenges.filter((c) => c.status === "scaling").length;
@@ -46,7 +49,7 @@ export default async function LandingPage() {
 
   let paidMilestones = 0;
   for (const p of pilots) {
-    paidMilestones += getMilestones(p.id).filter((m) => m.status === "paid").length;
+    paidMilestones += (await getMilestones(p.id)).filter((m) => m.status === "paid").length;
   }
 
   const stats: LandingStats = {
@@ -66,14 +69,14 @@ export default async function LandingPage() {
   const totalContracted = pilots.reduce((s, p) => s + Number(p.budget || 0), 0);
 
   const pilot = pilots[0];
-  const milestones = pilot ? getMilestones(pilot.id) : [];
-  const scaleDecision = pilot ? getScaleUpDecision(pilot.id) : undefined;
+  const milestones = pilot ? await getMilestones(pilot.id) : [];
+  const scaleDecision = pilot ? await getScaleUpDecision(pilot.id) : undefined;
   const paidTotal = milestones.reduce((s, m) => s + (m.status === "paid" ? Number(m.amount) : 0), 0);
   const verifiedTotal = milestones.filter((m) => m.status === "verified").length;
 
   let evalRecord: EvalRecord | null = null;
   if (pilot) {
-    const evals = getEvaluationsForApplication(pilot.application_id);
+    const evals = await getEvaluationsForApplication(pilot.application_id);
     const e = evals[0];
     if (e) {
       const scores = [e.innovation_score, e.feasibility_score, e.impact_score, e.scalability_score, e.viability_score].map(Number);

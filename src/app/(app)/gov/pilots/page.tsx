@@ -9,8 +9,11 @@ export default async function GovPilots({ searchParams }: { searchParams: Promis
   await requireRole(["government"]);
   const sp = await searchParams;
   const challengeId = sp.challenge ? Number(sp.challenge) : undefined;
-  const pilots = getPilots(challengeId ? { challengeId } : undefined);
-  const challenge = challengeId ? getChallenge(challengeId) : undefined;
+  const pilots = await getPilots(challengeId ? { challengeId } : undefined);
+  const challenge = challengeId ? await getChallenge(challengeId) : undefined;
+  const msByPilot = new Map<number, Awaited<ReturnType<typeof getMilestones>>>(
+    await Promise.all(pilots.map(async (p) => [p.id, await getMilestones(p.id)] as const))
+  );
 
   return (
     <div className="space-y-6">
@@ -30,7 +33,7 @@ export default async function GovPilots({ searchParams }: { searchParams: Promis
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {pilots.map((p) => {
-            const milestones = getMilestones(p.id);
+            const milestones = msByPilot.get(p.id) ?? [];
             const paid = milestones.filter((m) => (m.amount_paid ?? 0) > 0).length;
             return (
               <Card key={p.id} className="flex flex-col">

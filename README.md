@@ -31,15 +31,20 @@ Departments face operational problems that need innovative startup solutions, bu
 - **Next.js 16** (App Router, Server Components, Server Actions)
 - **TypeScript**
 - **Tailwind CSS v4**
-- **better-sqlite3** (local SQLite database, no external service needed)
+- **MongoDB Atlas** via the official `mongodb` driver (numeric ids preserved, so all routes are unchanged from the original design)
 - **jose** (JWT sessions) + **bcryptjs** (password hashing)
+- **Vitest** (unit + data-layer tests) + **Playwright** (browser smoke tests)
 
 ## Getting Started
 
+Prerequisites: Node 20+, and a MongoDB connection string (Atlas free tier works, or local `mongod`).
+
 ```bash
 npm install
-npm run seed      # create + populate the database with demo data
-npm run dev       # start dev server at http://localhost:3000
+cp .env.example .env   # then fill in MONGODB_URI + SESSION_SECRET
+npm run migrate        # apply database migrations (safe to re-run)
+npm run seed           # create + populate the database with demo data
+npm run dev            # start dev server at http://localhost:3000
 ```
 
 Production build:
@@ -50,6 +55,33 @@ npm run start
 ```
 
 > Note: `npm run seed` resets the database to demo state (all passwords `demo1234`).
+> It **refuses to run in production** unless `ALLOW_DESTRUCTIVE_SEED=true` is set.
+
+### Environment
+
+| Variable | Required | Purpose |
+|----------|----------|---------|
+| `MONGODB_URI` | yes | Atlas connection string, e.g. `mongodb+srv://user:pass@cluster.mongodb.net/govinnovate?retryWrites=true&w=majority` |
+| `MONGODB_DB` | no | Overrides the database name from the URI |
+| `SESSION_SECRET` | yes (prod) | JWT signing secret — generate with `openssl rand -base64 32`. The app refuses to boot in production without one |
+| `ALLOW_DESTRUCTIVE_SEED` | no | Must be `"true"` to allow `npm run seed` against production |
+
+### Tests
+
+```bash
+npm test          # Vitest: unit + data-layer suites (28 tests, in-memory Mongo)
+npm run test:e2e  # Playwright browser smoke (needs the app running seeded on :3000)
+```
+
+### Deploy
+
+**Docker (any VPS):**
+
+```bash
+docker compose up --build -d   # reads .env, serves on :3000, health-checked
+```
+
+**Vercel:** import the repo, set `MONGODB_URI` + `SESSION_SECRET` in project env, deploy. No code changes needed — DB-backed pages render dynamically and migrations run automatically on first connect (or run `npm run migrate` from CI).
 
 ### Demo accounts
 
@@ -107,24 +139,36 @@ src/
 │   │   ├── gov/          # Government: challenges, applications, pilots
 │   │   ├── startup/      # Startup: browse, apply, pilots, profile
 │   │   ├── evaluator/    # Evaluator scoring workspace
+│   │   ├── account/      # Self-service name, email, password
 │   │   └── admin/        # Overview, users, templates
+│   ├── api/health/       # Liveness probe (DB ping)
 │   ├── login/            # Sign-in page
 │   ├── templates/        # Public standard-templates library
 │   ├── layout.tsx
 │   └── page.tsx          # Marketing landing page
 ├── components/           # UI kit, AppShell, PipelineVisual
+├── e2e/                  # Playwright browser smoke tests
 └── lib/
-    ├── db.ts             # SQLite connection + schema
-    ├── seed.ts           # Demo data
-    ├── session.ts        # JWT session management
+    ├── db.ts             # Mongo connection, numeric id counters
+    ├── migrate.ts        # Versioned migration runner
+    ├── migrations/       # 001-base (indexes, counters), …
+    ├── seed.ts           # Demo data (dev only)
+    ├── session.ts        # JWT session management (cookies)
+    ├── session-crypto.ts # Pure sign/verify (unit-tested)
     ├── auth.ts           # DAL: role-based auth guards
     ├── data.ts           # Query layer
+    ├── env.ts            # Env validation (fail-fast in prod)
+    ├── rate-limit.ts     # Login brute-force protection
+    ├── validate.ts       # Input validators
     ├── format.ts         # INR/date/status helpers
     └── actions/          # Server Actions (auth, domain, templates)
 ```
 
-## Security notes (demo scope)
+## Security notes
 
 - Passwords hashed with bcrypt; JWT sessions are HttpOnly + SameSite cookies.
 - Every page and server action re-verifies the session and role.
-- `SESSION_SECRET` defaults are fine for local demo — set `SESSION_SECRET` env var for real deployments.
+- `SESSION_SECRET` is **required** in production — the app refuses to boot without it.
+- Sign-in is rate-limited (10 attempts / 10 min per account); put a WAF/CDN in front for network-level throttling.
+- Security headers (nosniff, DENY framing, referrer policy, HSTS in prod) are set in `next.config.ts`.
+- `getCurrentUser` never loads the password hash; destructive reseed is blocked in production.

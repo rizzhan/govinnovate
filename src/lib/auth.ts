@@ -1,6 +1,6 @@
 import { cache } from "react";
 import { redirect } from "next/navigation";
-import { db, type Role } from "./db";
+import { getDb, type Role, Doc } from "./db";
 import { getSession } from "./session";
 
 export type User = {
@@ -41,13 +41,12 @@ export const getSessionUser = cache(async (): Promise<SessionUser | null> => {
 export const getCurrentUser = cache(async (): Promise<User | null> => {
   const session = await getSession();
   if (!session) return null;
-  const row = db
-    .prepare(
-      `SELECT id, name, email, role, org, department, designation, phone
-       FROM users WHERE id = ?`
-    )
-    .get(session.userId) as User | undefined;
-  return row ?? null;
+  const db = await getDb();
+  const doc = await db.collection<Doc>("users")
+    .findOne({ _id: session.userId }, { projection: { password_hash: 0 } });
+  if (!doc) return null;
+  const { _id, ...rest } = doc;
+  return { id: _id, ...rest } as User;
 });
 
 export async function requireUser() {

@@ -6,7 +6,7 @@ import { templateIcons } from "@/components/template-icons";
 
 export default async function TemplateDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const template = getTemplate(Number(id));
+  const template = await getTemplate(Number(id));
   if (!template) notFound();
 
   const Icon = templateIcons[String(template.icon ?? "file-text").toLowerCase()] ?? FileText;

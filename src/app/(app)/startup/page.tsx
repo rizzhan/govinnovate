@@ -6,15 +6,18 @@ import { formatDate, formatINR } from "@/lib/format";
 
 export default async function StartupDashboard() {
   const user = await requireRole(["startup"]);
-  const profile = getStartupProfile(user.id);
-  const challenges = getChallenges();
+  const profile = await getStartupProfile(user.id);
+  const challenges = await getChallenges();
   const openChallenges = challenges.filter((c) => c.status === "open");
-  const apps = getApplications({ startupUserId: user.id });
-  const pilots = getPilots({ startupUserId: user.id });
+  const apps = await getApplications({ startupUserId: user.id });
+  const pilots = await getPilots({ startupUserId: user.id });
+  const msByPilot = new Map<number, Awaited<ReturnType<typeof getMilestones>>>(
+    await Promise.all(pilots.map(async (p) => [p.id, await getMilestones(p.id)] as const))
+  );
 
   const lifetime = pilots.reduce(
     (acc, p) => {
-      const ms = getMilestones(p.id);
+      const ms = msByPilot.get(p.id) ?? [];
       acc.contracted += Number(p.budget || 0);
       acc.received += ms.reduce((s, m) => s + (m.status === "paid" ? Number(m.amount) : 0), 0);
       return acc;

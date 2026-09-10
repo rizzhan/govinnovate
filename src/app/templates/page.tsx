@@ -4,8 +4,11 @@ import { getTemplates } from "@/lib/data";
 import MarketingNav from "@/components/MarketingNav";
 import TemplatesBrowser, { type TemplateRow } from "@/components/templates/TemplatesBrowser";
 
-export default function TemplatesPage() {
-  const rows = getTemplates();
+// Database-backed: always render fresh (and never query at build time).
+export const dynamic = "force-dynamic";
+
+export default async function TemplatesPage() {
+  const rows = await getTemplates();
   const templates: TemplateRow[] = rows.map((t) => ({
     id: Number(t.id),
     title: String(t.title ?? ""),

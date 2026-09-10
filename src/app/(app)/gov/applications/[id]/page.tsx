@@ -10,11 +10,11 @@ import { updateApplicationStatus } from "@/lib/actions/domain";
 export default async function GovApplicationDetail({ params }: { params: Promise<{ id: string }> }) {
   await requireRole(["government"]);
   const { id } = await params;
-  const app = getApplication(Number(id));
+  const app = await getApplication(Number(id));
   if (!app) notFound();
 
-  const evaluations = getEvaluationsForApplication(app.id);
-  const pilots = getPilots({ challengeId: app.challenge_id }).filter((p) => p.application_id === app.id);
+  const evaluations = await getEvaluationsForApplication(app.id);
+  const pilots = (await getPilots({ challengeId: app.challenge_id })).filter((p) => p.application_id === app.id);
 
   const statusBtn = (status: string, label: string, variant: "primary" | "danger") => (
     <form action={updateApplicationStatus} className="inline">

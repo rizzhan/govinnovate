@@ -10,11 +10,11 @@ import { addMilestone, submitScaleDecision, updateMilestone, updatePilotStatus }
 export default async function PilotDetail({ params }: { params: Promise<{ id: string }> }) {
   await requireRole(["government"]);
   const { id } = await params;
-  const pilot = getPilot(Number(id));
+  const pilot = await getPilot(Number(id));
   if (!pilot) notFound();
 
-  const milestones = getMilestones(pilot.id);
-  const scaleDecision = getScaleUpDecision(pilot.id);
+  const milestones = await getMilestones(pilot.id);
+  const scaleDecision = await getScaleUpDecision(pilot.id);
   const paidTotal = milestones.reduce((s, m) => s + (m.status === "paid" ? Number(m.amount) : 0), 0);
 
   return (
