@@ -14,7 +14,7 @@ export default function LoginPage() {
       <div className="fog-blob right-[-8%] top-[20%] h-[460px] w-[460px] bg-violet/28" />
       <div className="fog-blob bottom-[-16%] left-[35%] h-[560px] w-[560px] bg-accent/18" />
 
-      <MarketingNav back="/" backLabel="Back to home" />
+      <MarketingNav back="/" backLabel="Back to home" themeToggle={false} />
 
       <main className="relative z-10 flex w-full flex-1 items-start justify-center px-6 pb-16 pt-6 sm:pt-12">
         <div className="w-full max-w-md space-y-5">

@@ -6,9 +6,11 @@ import BrandMark from "./BrandMark";
 export default function MarketingNav({
   back,
   backLabel = "Back to home",
+  themeToggle = true,
 }: {
   back?: string;
   backLabel?: string;
+  themeToggle?: boolean;
 }) {
   return (
     <header className="relative z-10 mx-auto max-w-6xl px-6 pt-5">
@@ -16,7 +18,7 @@ export default function MarketingNav({
         <BrandMark size="sm" name="GovInnovate" />
         {back ? (
           <div className="flex items-center gap-1.5">
-            <ThemeToggle light />
+            {themeToggle && <ThemeToggle light />}
             <Link
               href={back}
               className="inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium text-ink-2 transition-colors hover:bg-black/5 hover:text-ink dark:text-white/70 dark:hover:bg-white/10 dark:hover:text-white"
