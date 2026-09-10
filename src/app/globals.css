@@ -1,26 +1,398 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:where(.dark, .dark *));
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+@theme {
+  --color-accent: #0071e3;
+  --color-accent-dark: #005bb8;
+  --color-ink: #1d1d1f;
+  --color-ink-2: #6e6e73;
+  --color-ink-3: #86868b;
+  --color-fog: #f5f5f7;
+  --color-glass: rgba(255, 255, 255, 0.6);
+  --color-verified: #34c759;
+  --color-pending: #ff9f0a;
+  --color-critical: #ff3b30;
+  --color-violet: #5856d6;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* =====================================================================
+   Core tokens — light and dark
+   ===================================================================== */
+
+:root {
+  color-scheme: light;
+  --page-bg: #f6f5f1;
+  --page-txt: #1d1d1f;
+  --color-surface: #ffffff;
+  --color-surface-2: rgba(23, 23, 25, 0.045);
+  --glass-bg: rgba(255, 255, 255, 0.66);
+  --glass-bg-strong: rgba(255, 255, 255, 0.84);
+  --glass-chip-bg: rgba(255, 255, 255, 0.62);
+  --glass-border: rgba(20, 20, 24, 0.07);
+  --glass-border-strong: rgba(20, 20, 24, 0.09);
+  --glass-chip-border: rgba(20, 20, 24, 0.06);
+  --glass-hl: rgba(255, 255, 255, 0.8);
+  --hairline: rgba(23, 23, 25, 0.08);
+  --shadow-soft: 0 1px 1px rgba(16, 24, 40, 0.03), 0 8px 24px rgba(16, 24, 40, 0.05);
+  --shadow-float: 0 2px 4px rgba(16, 24, 40, 0.04), 0 20px 48px rgba(16, 24, 40, 0.09);
+  --fog-opacity: 0.45;
+}
+
+.dark {
+  color-scheme: dark;
+  /* Semantic theme tokens — Tailwind v4 utilities like `text-ink` resolve to
+     these vars, so overriding them here flips the whole UI with the theme. */
+  --color-ink: #f5f5f7;
+  --color-ink-2: #a1a1a6;
+  --color-ink-3: #8e8e93;
+  --color-fog: #1c1c1e;
+  --color-glass: rgba(28, 28, 30, 0.6);
+  --color-accent: #0a84ff;
+  --color-surface: #1c1c1e;
+  --color-surface-2: rgba(255, 255, 255, 0.045);
+  --page-bg: #0d0d0f;
+  --page-txt: #f5f5f7;
+  --glass-bg: rgba(28, 28, 30, 0.62);
+  --glass-bg-strong: rgba(36, 36, 38, 0.78);
+  --glass-chip-bg: rgba(28, 28, 30, 0.58);
+  --glass-border: rgba(255, 255, 255, 0.09);
+  --glass-border-strong: rgba(255, 255, 255, 0.13);
+  --glass-chip-border: rgba(255, 255, 255, 0.08);
+  --glass-hl: rgba(255, 255, 255, 0.08);
+  --hairline: rgba(255, 255, 255, 0.09);
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 32px rgba(0, 0, 0, 0.35);
+  --shadow-float: 0 2px 6px rgba(0, 0, 0, 0.5), 0 24px 56px rgba(0, 0, 0, 0.45);
+  --fog-opacity: 0.3;
+}
+
+::selection {
+  background: rgba(0, 113, 227, 0.18);
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--page-txt);
+  background-color: var(--page-bg);
+  background-image:
+    radial-gradient(1100px 750px at 8% -12%, rgba(20, 110, 220, 0.075), transparent 62%),
+    radial-gradient(900px 650px at 105% 5%, rgba(93, 78, 210, 0.06), transparent 58%),
+    radial-gradient(1000px 800px at 50% 115%, rgba(30, 140, 210, 0.055), transparent 60%);
+  background-attachment: fixed;
+  font-family: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+/* Film-grain overlay — barely there, makes glass feel physical */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.022;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.6'/></svg>");
+}
+
+/* ---- Foggy glass materials ----------------------------------------- */
+
+.glass {
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  backdrop-filter: blur(18px) saturate(150%);
+  border: 1px solid var(--glass-border);
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.03),
+    0 8px 24px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 var(--glass-hl);
+  transition: background-color 0.4s ease, border-color 0.4s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.glass-strong {
+  background: var(--glass-bg-strong);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  backdrop-filter: blur(22px) saturate(160%);
+  border: 1px solid var(--glass-border-strong);
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.03),
+    0 14px 36px rgba(0, 0, 0, 0.07),
+    inset 0 1px 0 var(--glass-hl);
+  transition: background-color 0.4s ease, border-color 0.4s ease, box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.glass-dark {
+  background: rgba(24, 24, 27, 0.82);
+  -webkit-backdrop-filter: blur(28px) saturate(140%);
+  backdrop-filter: blur(28px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+.glass-chip {
+  background: var(--glass-chip-bg);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  backdrop-filter: blur(12px) saturate(140%);
+  border: 1px solid var(--glass-chip-border);
+  transition: background-color 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
+}
+
+.text-gradient {
+  background: linear-gradient(96deg, #0a66c2 0%, #5b4cdb 58%, #6b6478 112%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.dark .text-gradient {
+  background: linear-gradient(96deg, #4da3ff 0%, #8f7bff 58%, #bdb7c6 112%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.hairline {
+  border-top: 1px solid var(--hairline);
+}
+
+/* ---- Fog blob decoration ------------------------------------------- */
+
+.fog-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(90px);
+  pointer-events: none;
+  opacity: var(--fog-opacity);
+  will-change: transform;
+  animation: fog-drift 18s ease-in-out infinite alternate;
+}
+
+.dark .fog-blob {
+  filter: blur(110px);
+}
+
+@keyframes fog-drift {
+  from {
+    transform: translate3d(-4%, 2%, 0) scale(1);
+  }
+  to {
+    transform: translate3d(4%, -3%, 0) scale(1.12);
+  }
+}
+
+/* ---- Motion --------------------------------------------------------- */
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out both;
+}
+
+/* Lift interaction on cards */
+.lift {
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease, background-color 0.3s ease;
+}
+
+.lift:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-float);
+}
+
+/* ---- Focus & accessibility ------------------------------------------ */
+
+:focus-visible {
+  outline: 2px solid rgba(0, 113, 227, 0.65);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* ---- Dark-mode remap of legacy utility classes --------------------------
+   Flips historic Tailwind/slate/hex surfaces so full dark mode works without
+   touching component files. New code should prefer `dark:` variants or the
+   semantic tokens above. */
+
+.dark .text-\[\#1d1d1f\] {
+  color: #f5f5f7;
+}
+.dark .text-slate-900 {
+  color: #f5f5f7;
+}
+.dark .text-slate-700 {
+  color: #ececee;
+}
+.dark .text-\[\#6e6e73\],
+.dark .text-slate-600,
+.dark .text-slate-500 {
+  color: #a1a1a6;
+}
+.dark .text-\[\#86868b\] {
+  color: #8e8e93;
+}
+.dark .text-\[\#424245\],
+.dark .text-slate-400 {
+  color: #8e8e93;
+}
+
+.dark .border-black\/5 {
+  border-color: rgba(255, 255, 255, 0.07);
+}
+.dark .border-black\/8 {
+  border-color: rgba(255, 255, 255, 0.09);
+}
+.dark .border-black\/10 {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+.dark .border-slate-100 {
+  border-color: rgba(255, 255, 255, 0.09);
+}
+.dark .border-slate-200 {
+  border-color: rgba(255, 255, 255, 0.13);
+}
+.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgba(255, 255, 255, 0.09);
+}
+
+.dark .bg-white {
+  background-color: rgba(255, 255, 255, 0.09);
+}
+.dark .bg-white\/80 {
+  background-color: rgba(255, 255, 255, 0.11);
+}
+.dark .bg-white\/70 {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+.dark .bg-white\/60 {
+  background-color: rgba(255, 255, 255, 0.09);
+}
+.dark .bg-white\/55 {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+.dark .bg-white\/50 {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+.dark .bg-white\/45 {
+  background-color: rgba(255, 255, 255, 0.07);
+}
+.dark .bg-white\/40 {
+  background-color: rgba(255, 255, 255, 0.07);
+}
+.dark .bg-white\/30 {
+  background-color: rgba(255, 255, 255, 0.06);
+}
+.dark .hover\:bg-white:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+.dark .bg-black\/5 {
+  background-color: rgba(255, 255, 255, 0.06);
+}
+.dark .hover\:bg-black\/5:hover {
+  background-color: rgba(255, 255, 255, 0.09);
+}
+.dark .bg-black\/10 {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark .bg-slate-50 {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+.dark .hover\:bg-slate-50:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+.dark .bg-slate-100 {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+.dark .hover\:bg-slate-200:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Hardcoded status text hexes used across pages — brighten for dark surfaces */
+.dark .text-\[\#1f8a3d\] {
+  color: #30d158;
+}
+.dark .text-\[\#9a4a00\] {
+  color: #ffd60a;
+}
+.dark .text-\[\#c22f2f\] {
+  color: #ff6961;
+}
+
+/* Status chips — refined dark tints */
+.dark .bg-green-100 {
+  background-color: rgba(48, 209, 88, 0.14);
+}
+.dark .text-green-700 {
+  color: #30d158;
+}
+.dark .bg-red-100 {
+  background-color: rgba(255, 95, 86, 0.15);
+}
+.dark .text-red-700 {
+  color: #ff6961;
+}
+.dark .bg-indigo-100 {
+  background-color: rgba(94, 92, 230, 0.18);
+}
+.dark .text-indigo-700 {
+  color: #7d7bff;
+}
+.dark .bg-amber-100 {
+  background-color: rgba(255, 214, 10, 0.14);
+}
+.dark .text-amber-700 {
+  color: #ffd60a;
+}
+.dark .hover\:bg-amber-50:hover {
+  background-color: rgba(255, 214, 10, 0.09);
+}
+.dark .border-amber-300 {
+  border-color: rgba(255, 214, 10, 0.32);
+}
+
+.dark .bg-red-50 {
+  background-color: rgba(255, 95, 86, 0.09);
+}
+.dark .border-red-200 {
+  border-color: rgba(255, 95, 86, 0.25);
 }

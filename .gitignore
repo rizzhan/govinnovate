@@ -33,6 +33,10 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# local sqlite database (regenerable via `npm run seed`)
+/data/
+/data.db
+
 # vercel
 .vercel
 
