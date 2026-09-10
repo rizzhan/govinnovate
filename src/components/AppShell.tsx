@@ -160,7 +160,7 @@ export default function AppShell({
                   <button
                     type="submit"
                     role="menuitem"
-                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium text-critical transition-colors hover:bg-critical/10"
                   >
                     <LogOut className="h-4 w-4" aria-hidden />
                     Sign out
