@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { db } from "../db";
 import { requireUser, requireRole } from "../auth";
+import { createSession } from "../session";
 
 function int(v: FormDataEntryValue | null): number {
   const n = Number(v);
@@ -311,4 +312,33 @@ export async function deleteAttachment(formData: FormData) {
   const id = int(formData.get("id"));
   db.prepare("DELETE FROM startup_attachments WHERE id=? AND startup_user_id=?").run(id, user.id);
   revalidatePath("/startup/profile");
+}
+
+export async function updateAccount(formData: FormData) {
+  const user = await requireUser();
+  const name = String(formData.get("name") || "").trim().slice(0, 120);
+  const email = String(formData.get("email") || "").trim().toLowerCase().slice(0, 160);
+  if (!name || !email) redirect("/account?error=missing");
+  const taken = db.prepare("SELECT id FROM users WHERE email=? AND id<>?").get(email, user.id);
+  if (taken) redirect("/account?error=email-taken");
+  db.prepare("UPDATE users SET name=?, email=? WHERE id=?").run(name, email, user.id);
+  await createSession(user.id, user.role, name);
+  revalidatePath("/account");
+  redirect("/account?saved=profile");
+}
+
+export async function changePassword(formData: FormData) {
+  const user = await requireUser();
+  const current = String(formData.get("current_password") || "");
+  const next = String(formData.get("new_password") || "");
+  const confirm = String(formData.get("confirm_password") || "");
+  if (next !== confirm) redirect("/account?error=password-mismatch");
+  if (next.length < 8) redirect("/account?error=password-short");
+  const { default: bcrypt } = await import("bcryptjs");
+  const row = db.prepare("SELECT password_hash FROM users WHERE id=?").get(user.id) as any;
+  const ok = row ? bcrypt.compareSync(current, row.password_hash) : false;
+  if (!ok) redirect("/account?error=current-password");
+  db.prepare("UPDATE users SET password_hash=? WHERE id=?").run(bcrypt.hashSync(next, 10), user.id);
+  revalidatePath("/account");
+  redirect("/account?saved=password");
 }

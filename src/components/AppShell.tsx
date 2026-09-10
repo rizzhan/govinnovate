@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Building2, ChevronUp, ClipboardCheck, Compass, FileText, FlaskConical, Inbox, LayoutDashboard, LogOut, PlusCircle, Users } from "lucide-react";
+import { Building2, ChevronUp, ClipboardCheck, Compass, FileText, FlaskConical, Inbox, LayoutDashboard, LogOut, PlusCircle, Settings2, Users } from "lucide-react";
 import { logout } from "@/lib/actions/auth";
 import { roleLabels } from "@/lib/format";
 import type { Role } from "@/lib/db";
@@ -145,6 +145,15 @@ export default function AppShell({
                 </div>
               </div>
               <div className="space-y-0.5 border-t border-white/10 p-1.5">
+                <Link
+                  href="/account"
+                  role="menuitem"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+                >
+                  <Settings2 className="h-4 w-4" aria-hidden />
+                  Account settings
+                </Link>
                 {profileHref && (
                   <Link
                     href={profileHref}
@@ -201,18 +210,17 @@ export default function AppShell({
               <BrandMark size="sm" />
               <span className="text-[15px] font-semibold tracking-tight text-ink">GovInnovate</span>
             </div>
-
-            <div className="hidden items-center gap-4 lg:flex">
+              <div className="hidden items-center gap-4 lg:flex">
               <span className="inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/40 px-3.5 py-1 text-xs font-medium text-accent backdrop-blur dark:border-white/10 dark:bg-white/10 dark:text-sky-300">
                 {roleLabels[user.role]} Portal
               </span>
             </div>
 
             <div className="flex items-center gap-2.5">
-              <div className="text-right lg:hidden">
+              <Link href="/account" className="text-right lg:hidden" aria-label="Account settings">
                 <p className="text-xs font-medium text-ink">{user.name}</p>
                 <p className="text-[11px] text-ink-2">{roleLabels[user.role]}</p>
-              </div>
+              </Link>
               <ThemeToggle />
               <form action={logout}>
                 <button
