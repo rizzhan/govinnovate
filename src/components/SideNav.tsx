@@ -9,8 +9,13 @@ export type SideNavGroup = { heading?: string; items: SideNavItem[] };
 
 export default function SideNav({ groups }: { groups: SideNavGroup[] }) {
   const pathname = usePathname();
-  const isActive = (href: string) =>
+  const allHrefs = groups.flatMap((g) => g.items.map((i) => i.href));
+  const matches = (href: string) =>
     href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(href + "/");
+  // Longest-prefix wins so a section root (e.g. /gov) doesn't stay
+  // highlighted when a deeper page (e.g. /gov/applications) is active.
+  const isActive = (href: string) =>
+    matches(href) && !allHrefs.some((o) => o !== href && o.length > href.length && matches(o));
 
   return (
     <nav className="flex-1 overflow-y-auto px-3 pb-6">

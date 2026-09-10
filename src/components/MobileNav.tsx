@@ -8,8 +8,13 @@ export type MobileNavItem = { href: string; label: string; icon: LucideIcon };
 
 export default function MobileNav({ items }: { items: MobileNavItem[] }) {
   const pathname = usePathname();
-  const isActive = (href: string) =>
+  const allHrefs = items.map((i) => i.href);
+  const matches = (href: string) =>
     href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(href + "/");
+  // Longest-prefix wins so a section root doesn't stay highlighted
+  // when a deeper page is active.
+  const isActive = (href: string) =>
+    matches(href) && !allHrefs.some((o) => o !== href && o.length > href.length && matches(o));
 
   return (
     <nav
