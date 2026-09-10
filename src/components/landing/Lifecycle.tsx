@@ -157,10 +157,6 @@ export default function Lifecycle() {
       {/* Desktop — horizontal timeline + shared detail panel */}
       <div className="hidden md:block">
         <div className="relative">
-          <div
-            className="absolute left-[4.5%] right-[4.5%] top-6 h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent"
-            aria-hidden
-          />
           <div className="relative grid grid-cols-9 gap-1">
             {stages.map((s, i) => {
               const activeStage = active === i;
