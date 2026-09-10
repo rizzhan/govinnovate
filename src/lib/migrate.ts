@@ -18,12 +18,27 @@ export async function runMigrations(db: Db): Promise<number[]> {
     (await db.collection("schema_migrations").find({}).toArray()).map((d) => d.version as number)
   );
   const done: number[] = [];
+  const refresh = async () => {
+    const fresh = await db.collection("schema_migrations").find({}).toArray();
+    for (const d of fresh) applied.add(d.version as number);
+  };
   for (const m of [...migrations].sort((a, b) => a.version - b.version)) {
     if (applied.has(m.version)) continue;
-    await m.run(db);
-    await db
-      .collection("schema_migrations")
-      .insertOne({ version: m.version, name: m.name, applied_at: new Date().toISOString() });
+    try {
+      await m.run(db);
+      await db
+        .collection("schema_migrations")
+        .insertOne({ version: m.version, name: m.name, applied_at: new Date().toISOString() });
+    } catch (e: any) {
+      if (e?.code === 11000) {
+        // Lost a race with another process running the same migration:
+        // re-read what is actually applied and carry on.
+        await refresh();
+        continue;
+      }
+      throw e;
+    }
+    applied.add(m.version);
     done.push(m.version);
   }
   return done;

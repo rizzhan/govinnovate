@@ -44,10 +44,24 @@ export function setTestDb(db: Db) {
   globalForMongo.__migrated = true;
 }
 
+let migrating: Promise<void> | null = null;
+
 async function ensureMigrated(db: Db): Promise<void> {
   if (globalForMongo.__migrated) return;
-  await runMigrations(db);
-  globalForMongo.__migrated = true;
+  // Single-flight: concurrent first-connects share one migration run.
+  if (!migrating) {
+    migrating = runMigrations(db).then(
+      () => {
+        globalForMongo.__migrated = true;
+        migrating = null;
+      },
+      (e) => {
+        migrating = null;
+        throw e;
+      }
+    );
+  }
+  await migrating;
 }
 
 /** Document shape: free-form fields plus the numeric _id this app uses. */
