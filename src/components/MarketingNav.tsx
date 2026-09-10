@@ -2,8 +2,16 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import BrandMark from "./BrandMark";
+import { getCurrentUser } from "@/lib/auth";
 
-export default function MarketingNav({
+const roleHome: Record<string, string> = {
+  government: "/gov",
+  startup: "/startup",
+  evaluator: "/evaluator",
+  admin: "/admin",
+};
+
+export default async function MarketingNav({
   back,
   backLabel = "Back to home",
   themeToggle = true,
@@ -12,6 +20,9 @@ export default function MarketingNav({
   backLabel?: string;
   themeToggle?: boolean;
 }) {
+  const user = back ? null : await getCurrentUser();
+  const primaryCls =
+    "inline-flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-sm font-medium text-white shadow-[0_1px_2px_rgba(0,0,0,0.1),0_8px_20px_rgba(0,113,227,0.35)] transition-colors hover:bg-accent-dark active:scale-[0.97]";
   return (
     <header className="relative z-10 mx-auto max-w-6xl px-6 pt-5">
       <nav className="glass flex items-center justify-between rounded-full py-2.5 pl-4 pr-2.5 sm:py-2">
@@ -36,12 +47,15 @@ export default function MarketingNav({
               Templates
             </Link>
             <ThemeToggle light />
-            <Link
-              href="/login"
-              className="inline-flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-sm font-medium text-white shadow-[0_1px_2px_rgba(0,0,0,0.1),0_8px_20px_rgba(0,113,227,0.35)] transition-colors hover:bg-accent-dark active:scale-[0.97]"
-            >
-              Sign in
-            </Link>
+            {user ? (
+              <Link href={roleHome[user.role] ?? "/"} className={primaryCls}>
+                Open dashboard
+              </Link>
+            ) : (
+              <Link href="/login" className={primaryCls}>
+                Sign in
+              </Link>
+            )}
           </div>
         )}
       </nav>
