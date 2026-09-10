@@ -1,6 +1,8 @@
 "use client";
 
-import { Building2, ClipboardCheck, Compass, FileText, FlaskConical, Inbox, LayoutDashboard, LogOut, PlusCircle, Users } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { Building2, ChevronUp, ClipboardCheck, Compass, FileText, FlaskConical, Inbox, LayoutDashboard, LogOut, PlusCircle, Users } from "lucide-react";
 import { logout } from "@/lib/actions/auth";
 import { roleLabels } from "@/lib/format";
 import type { Role } from "@/lib/db";
@@ -94,6 +96,17 @@ export default function AppShell({
   children: React.ReactNode;
 }) {
   const groups = navConfig[user.role] ?? [];
+  const [menuOpen, setMenuOpen] = useState(false);
+  const profileHref = user.role === "startup" ? "/startup/profile" : null;
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [menuOpen]);
   return (
     <div className="min-h-screen">
       {/* Floating side rail */}
@@ -106,18 +119,77 @@ export default function AppShell({
           </div>
         </div>
         <SideNav groups={groups} />
-        <div className="border-t border-white/10 px-5 py-4">
-          <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-accent to-violet text-sm font-semibold text-white">
+        <div className="relative border-t border-white/10 px-5 py-4">
+          {menuOpen && (
+            <button
+              type="button"
+              aria-hidden
+              tabIndex={-1}
+              onClick={() => setMenuOpen(false)}
+              className="fixed inset-0 z-10 cursor-default"
+            />
+          )}
+          {menuOpen && (
+            <div
+              role="menu"
+              aria-label="Account"
+              className="animate-fade-in absolute inset-x-4 bottom-full z-20 mb-2 overflow-hidden rounded-2xl border border-white/10 bg-[#232326]/95 shadow-[0_16px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl"
+            >
+              <div className="flex items-center gap-3 px-4 py-3.5">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-accent to-violet text-[13px] font-semibold text-white">
+                  {user.name.charAt(0)}
+                </span>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-white">{user.name}</p>
+                  <p className="truncate text-[11px] text-white/50">{user.email}</p>
+                </div>
+              </div>
+              <div className="space-y-0.5 border-t border-white/10 p-1.5">
+                {profileHref && (
+                  <Link
+                    href={profileHref}
+                    role="menuitem"
+                    onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+                  >
+                    <Building2 className="h-4 w-4" aria-hidden />
+                    Startup profile
+                  </Link>
+                )}
+                <form action={logout}>
+                  <button
+                    type="submit"
+                    role="menuitem"
+                    className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+                  >
+                    <LogOut className="h-4 w-4" aria-hidden />
+                    Sign out
+                  </button>
+                </form>
+              </div>
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-expanded={menuOpen}
+            aria-haspopup="menu"
+            className="flex w-full items-center gap-3 rounded-2xl p-1.5 text-left transition-colors hover:bg-white/5 active:scale-[0.99]"
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-accent to-violet text-sm font-semibold text-white">
               {user.name.charAt(0)}
             </span>
-            <div className="min-w-0">
-              <p className="truncate text-sm font-medium text-white">{user.name}</p>
-              <p className="truncate text-[11px] text-white/50">
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-sm font-medium text-white">{user.name}</span>
+              <span className="block truncate text-[11px] text-white/50">
                 {roleLabels[user.role]} {user.org ? `· ${user.org}` : ""}
-              </p>
-            </div>
-          </div>
+              </span>
+            </span>
+            <ChevronUp
+              className={`h-4 w-4 shrink-0 text-white/40 transition-transform duration-200 ${menuOpen ? "" : "rotate-180"}`}
+              aria-hidden
+            />
+          </button>
         </div>
       </aside>
 
