@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { getDb } from "./db";
 
 /** Explicit migration entrypoint for deploys/CI: `npm run migrate`. */
