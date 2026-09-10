@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import {
   Check,
   ChevronDown,
@@ -156,18 +156,17 @@ export default function Lifecycle() {
 
       {/* Desktop — horizontal timeline + shared detail panel */}
       <div className="hidden md:block">
-        <div className="relative">
-          <div className="relative grid grid-cols-9 gap-1">
-            {stages.map((s, i) => {
-              const activeStage = active === i;
-              const Icon = s.icon;
-              return (
+        <div className="flex items-start" role="group" aria-label="Procurement stages">
+          {stages.map((s, i) => {
+            const activeStage = active === i;
+            const Icon = s.icon;
+            return (
+              <Fragment key={s.n}>
                 <button
-                  key={s.n}
                   type="button"
                   onClick={() => setActive(i)}
                   aria-pressed={activeStage}
-                  className="group flex flex-col items-center gap-1.5 outline-offset-4"
+                  className="group flex min-w-0 flex-[2] flex-col items-center gap-1.5 outline-offset-4"
                 >
                   <span
                     className={`flex h-12 w-12 items-center justify-center rounded-2xl border transition-all duration-200 ${
@@ -189,10 +188,16 @@ export default function Lifecycle() {
                     {s.title}
                   </span>
                 </button>
+                  {i < stages.length - 1 && (
+                    <div
+                      aria-hidden
+                      className="mt-[23px] h-0.5 min-w-2 flex-1 rounded-full bg-accent/25"
+                    />
+                  )}
+                </Fragment>
               );
             })}
           </div>
-        </div>
 
         <div
           key={active}
