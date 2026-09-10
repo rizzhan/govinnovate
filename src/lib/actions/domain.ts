@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getDb, getNextId, nowIso, Doc } from "../db";
 import { requireUser, requireRole } from "../auth";
 import { createSession } from "../session";
+import { logAudit } from "../audit";
 import { normalizeEmail, normalizeUrl } from "../validate";
 
 function int(v: FormDataEntryValue | null): number {
@@ -45,9 +46,10 @@ export async function publishChallenge(formData: FormData) {
 }
 
 export async function deleteChallenge(formData: FormData) {
-  await requireRole(["government", "admin"]);
+  const user = await requireRole(["government", "admin"]);
   const db = await getDb();
   const id = int(formData.get("id"));
+  const doomed = await db.collection<Doc>("challenges").findOne({ _id: id });
   // Manual cascade (parity with the previous SQL foreign keys).
   const apps = await db.collection<Doc>("applications").find({ challenge_id: id }).project({ _id: 1 }).toArray();
   const appIds = apps.map((a) => a._id);
@@ -63,6 +65,7 @@ export async function deleteChallenge(formData: FormData) {
     await db.collection<Doc>("pilots").deleteMany({ _id: { $in: pilotIds } });
   }
   await db.collection<Doc>("challenges").deleteOne({ _id: id });
+  logAudit(db, { actor_user_id: user.id, actor_name: user.name, actor_role: user.role, action: "challenge.deleted", entity: "challenge", entity_id: id, meta: { title: doomed?.title ?? "" } });
   revalidatePath("/gov");
   revalidatePath("/admin");
 }
@@ -115,11 +118,13 @@ export async function applyToChallenge(formData: FormData) {
 }
 
 export async function updateApplicationStatus(formData: FormData) {
-  await requireRole(["government"]);
+  const user = await requireRole(["government"]);
   const db = await getDb();
   const id = int(formData.get("id"));
   const status = String(formData.get("status") || "");
+  const prev = await db.collection<Doc>("applications").findOne({ _id: id });
   await db.collection<Doc>("applications").updateOne({ _id: id }, { $set: { status, updated_at: nowIso() } });
+  logAudit(db, { actor_user_id: user.id, actor_name: user.name, actor_role: user.role, action: "application.status_changed", entity: "application", entity_id: id, meta: { from: prev?.status ?? "", to: status } });
   revalidatePath("/gov");
   revalidatePath("/startup");
 }
@@ -129,7 +134,9 @@ export async function submitEvaluation(formData: FormData) {
   const db = await getDb();
   const appId = int(formData.get("application_id"));
   const evaluatorId = (await requireUser()).id;
-  await db.collection<Doc>("evaluations").insertOne({
+  const evaluator = await db.collection<Doc>("users").findOne({ _id: evaluatorId });
+  const recommendation = String(formData.get("recommendation") || "");
+  const r = await db.collection<Doc>("evaluations").insertOne({
     _id: await getNextId("evaluations"),
     application_id: appId,
     evaluator_user_id: evaluatorId,
@@ -139,25 +146,28 @@ export async function submitEvaluation(formData: FormData) {
     scalability_score: int(formData.get("scalability_score")),
     viability_score: int(formData.get("viability_score")),
     comments: String(formData.get("comments") || ""),
-    recommendation: String(formData.get("recommendation") || ""),
+    recommendation,
     submitted_at: nowIso(),
   });
+  logAudit(db, { actor_user_id: evaluatorId, actor_name: evaluator?.name ?? "", actor_role: "evaluator", action: "evaluation.submitted", entity: "evaluation", entity_id: r.insertedId as number, meta: { application_id: appId, recommendation } });
   revalidatePath("/evaluator");
   redirect("/evaluator");
 }
 
 export async function createPilot(formData: FormData) {
-  await requireRole(["government"]);
+  const user = await requireRole(["government"]);
   const db = await getDb();
   const challengeId = int(formData.get("challenge_id"));
   const pilotId = await getNextId("pilots");
+  const title = String(formData.get("title") || "");
+  const budget = int(formData.get("budget"));
   await db.collection<Doc>("pilots").insertOne({
     _id: pilotId,
     challenge_id: challengeId,
     startup_user_id: int(formData.get("startup_user_id")),
     application_id: int(formData.get("application_id")),
-    title: String(formData.get("title") || ""),
-    budget: int(formData.get("budget")),
+    title,
+    budget,
     start_date: String(formData.get("start_date") || ""),
     end_date: String(formData.get("end_date") || ""),
     status: "design",
@@ -169,16 +179,18 @@ export async function createPilot(formData: FormData) {
   });
   await db.collection<Doc>("challenges")
     .updateOne({ _id: challengeId }, { $set: { status: "piloting", status_last_updated: nowIso() } });
+  logAudit(db, { actor_user_id: user.id, actor_name: user.name, actor_role: user.role, action: "pilot.created", entity: "pilot", entity_id: pilotId, meta: { title, budget, challenge_id: challengeId } });
   revalidatePath("/gov");
   redirect(`/gov/pilots/${pilotId}`);
 }
 
 export async function updatePilotStatus(formData: FormData) {
-  await requireRole(["government"]);
+  const user = await requireRole(["government"]);
   const db = await getDb();
   const id = int(formData.get("id"));
   const status = String(formData.get("status") || "");
   await db.collection<Doc>("pilots").updateOne({ _id: id }, { $set: { status } });
+  logAudit(db, { actor_user_id: user.id, actor_name: user.name, actor_role: user.role, action: "pilot.status_changed", entity: "pilot", entity_id: id, meta: { to: status } });
   if (status === "active") {
     const pilot = await db.collection<Doc>("pilots").findOne({ _id: id });
     if (pilot) {
@@ -191,63 +203,70 @@ export async function updatePilotStatus(formData: FormData) {
 }
 
 export async function addMilestone(formData: FormData) {
-  await requireRole(["government"]);
+  const user = await requireRole(["government"]);
   const db = await getDb();
   const pilotId = int(formData.get("pilot_id"));
-  await db.collection<Doc>("milestones").insertOne({
+  const title = String(formData.get("title") || "");
+  const amount = int(formData.get("amount"));
+  const r = await db.collection<Doc>("milestones").insertOne({
     _id: await getNextId("milestones"),
     pilot_id: pilotId,
-    title: String(formData.get("title") || ""),
+    title,
     description: String(formData.get("description") || ""),
     due_date: String(formData.get("due_date") || ""),
-    amount: int(formData.get("amount")),
+    amount,
     status: "pending",
     verified_by: null,
     verified_at: null,
     paid_at: null,
     payment_ref: "",
   });
+  logAudit(db, { actor_user_id: user.id, actor_name: user.name, actor_role: user.role, action: "milestone.added", entity: "milestone", entity_id: r.insertedId as number, meta: { title, amount, pilot_id: pilotId } });
   revalidatePath("/gov");
   revalidatePath("/startup");
   redirect(`/gov/pilots/${pilotId}`);
 }
 
 export async function updateMilestone(formData: FormData) {
-  await requireRole(["government"]);
+  const user = await requireRole(["government"]);
   const db = await getDb();
   const id = int(formData.get("id"));
   const action = String(formData.get("action") || "");
-  const user = await requireUser();
+  const ms = await db.collection<Doc>("milestones").findOne({ _id: id });
   if (action === "verify") {
     await db.collection<Doc>("milestones")
       .updateOne({ _id: id }, { $set: { status: "verified", verified_by: user.id, verified_at: nowIso() } });
+    logAudit(db, { actor_user_id: user.id, actor_name: user.name, actor_role: user.role, action: "milestone.verified", entity: "milestone", entity_id: id, meta: { title: ms?.title ?? "", amount: ms?.amount ?? 0 } });
   } else if (action === "pay") {
+    const payment_ref = String(formData.get("payment_ref") || `PFMS-${Date.now()}`);
     await db.collection<Doc>("milestones")
       .updateOne(
         { _id: id },
-        { $set: { status: "paid", paid_at: nowIso(), payment_ref: String(formData.get("payment_ref") || `PFMS-${Date.now()}`) } }
+        { $set: { status: "paid", paid_at: nowIso(), payment_ref } }
       );
+    logAudit(db, { actor_user_id: user.id, actor_name: user.name, actor_role: user.role, action: "milestone.paid", entity: "milestone", entity_id: id, meta: { title: ms?.title ?? "", amount: ms?.amount ?? 0, payment_ref } });
   }
   revalidatePath("/gov");
   revalidatePath("/startup");
 }
 
 export async function submitScaleDecision(formData: FormData) {
-  await requireRole(["government"]);
+  const user = await requireRole(["government"]);
   const db = await getDb();
   const pilotId = int(formData.get("pilot_id"));
-  const user = await requireUser();
   const decision = String(formData.get("decision") || "");
-  await db.collection<Doc>("scale_up_decisions").insertOne({
+  const districts = String(formData.get("districts") || "");
+  const r = await db.collection<Doc>("scale_up_decisions").insertOne({
     _id: await getNextId("scale_up_decisions"),
     pilot_id: pilotId,
     decision,
-    districts: String(formData.get("districts") || ""),
+    districts,
     procurement_pathway: String(formData.get("procurement_pathway") || ""),
     validation_notes: String(formData.get("validation_notes") || ""),
     decision_by: user.id,
     decision_at: nowIso(),
   });
+  logAudit(db, { actor_user_id: user.id, actor_name: user.name, actor_role: user.role, action: "scale_decision.recorded", entity: "scale_up_decision", entity_id: r.insertedId as number, meta: { decision, districts, pilot_id: pilotId } });
   const pilot = await db.collection<Doc>("pilots").findOne({ _id: pilotId });
   if (pilot) {
     const status = decision === "scale" ? "scaling" : "completed";
@@ -260,7 +279,7 @@ export async function submitScaleDecision(formData: FormData) {
 }
 
 export async function createUser(formData: FormData) {
-  await requireRole(["admin"]);
+  const admin = await requireRole(["admin"]);
   const db = await getDb();
   const { default: bcrypt } = await import("bcryptjs");
   const name = String(formData.get("name") || "").trim();
@@ -273,9 +292,11 @@ export async function createUser(formData: FormData) {
   const existing = await db.collection<Doc>("users").findOne({ email });
   if (existing) return;
   const hash = bcrypt.hashSync(password, 10);
+  let newId: number;
   try {
+    newId = await getNextId("users");
     await db.collection<Doc>("users").insertOne({
-      _id: await getNextId("users"),
+      _id: newId,
       name,
       email,
       password_hash: hash,
@@ -290,30 +311,51 @@ export async function createUser(formData: FormData) {
     // Lost a race with another admin creating the same email (unique index).
     return;
   }
+  logAudit(db, { actor_user_id: admin.id, actor_name: admin.name, actor_role: admin.role, action: "user.created", entity: "user", entity_id: newId, meta: { email, role } });
   revalidatePath("/admin");
   redirect("/admin/users");
 }
 
 export async function updateUserRole(formData: FormData) {
-  await requireRole(["admin"]);
+  const admin = await requireRole(["admin"]);
   const db = await getDb();
   const id = int(formData.get("id"));
   const role = String(formData.get("role") || "");
   if (!role) return;
+  const prev = await db.collection<Doc>("users").findOne({ _id: id });
   await db.collection<Doc>("users").updateOne({ _id: id }, { $set: { role } });
+  logAudit(db, { actor_user_id: admin.id, actor_name: admin.name, actor_role: admin.role, action: "user.role_changed", entity: "user", entity_id: id, meta: { from: prev?.role ?? "", to: role } });
   revalidatePath("/admin");
   revalidatePath("/admin/users");
 }
 
 export async function deleteUser(formData: FormData) {
-  await requireRole(["admin"]);
+  const admin = await requireRole(["admin"]);
   const db = await getDb();
   const id = int(formData.get("id"));
+  const doomed = await db.collection<Doc>("users").findOne({ _id: id });
   await db.collection<Doc>("startup_profiles").deleteOne({ user_id: id });
   await db.collection<Doc>("startup_attachments").deleteMany({ startup_user_id: id });
   await db.collection<Doc>("users").deleteOne({ _id: id });
+  logAudit(db, { actor_user_id: admin.id, actor_name: admin.name, actor_role: admin.role, action: "user.deleted", entity: "user", entity_id: id, meta: { email: doomed?.email ?? "", role: doomed?.role ?? "" } });
   revalidatePath("/admin");
   revalidatePath("/admin/users");
+}
+
+export async function resetUserPassword(formData: FormData) {
+  const admin = await requireRole(["admin"]);
+  const db = await getDb();
+  const id = int(formData.get("id"));
+  const temp = String(formData.get("temp_password") || "");
+  if (temp.length < 8) redirect("/admin/users?error=password-short");
+  const target = await db.collection<Doc>("users").findOne({ _id: id });
+  if (!target) redirect("/admin/users?error=user-missing");
+  const { default: bcrypt } = await import("bcryptjs");
+  await db.collection<Doc>("users").updateOne({ _id: id }, { $set: { password_hash: bcrypt.hashSync(temp, 10) } });
+  // Never log the password itself — only that a reset happened.
+  logAudit(db, { actor_user_id: admin.id, actor_name: admin.name, actor_role: admin.role, action: "user.password_reset", entity: "user", entity_id: id, meta: { email: target?.email ?? "" } });
+  revalidatePath("/admin");
+  redirect("/admin/users?saved=password-reset");
 }
 
 export async function addAttachment(formData: FormData) {
@@ -322,13 +364,14 @@ export async function addAttachment(formData: FormData) {
   const label = String(formData.get("label") || "").trim().slice(0, 120);
   const url = normalizeUrl(formData.get("url"));
   if (!label || !url) return;
-  await db.collection<Doc>("startup_attachments").insertOne({
+  const r = await db.collection<Doc>("startup_attachments").insertOne({
     _id: await getNextId("startup_attachments"),
     startup_user_id: user.id,
     label,
     url,
     created_at: nowIso(),
   });
+  logAudit(db, { actor_user_id: user.id, actor_name: user.name, actor_role: user.role, action: "attachment.added", entity: "startup_attachment", entity_id: r.insertedId as number, meta: { label } });
   revalidatePath("/startup/profile");
 }
 
@@ -337,6 +380,7 @@ export async function deleteAttachment(formData: FormData) {
   const db = await getDb();
   const id = int(formData.get("id"));
   await db.collection<Doc>("startup_attachments").deleteOne({ _id: id, startup_user_id: user.id });
+  logAudit(db, { actor_user_id: user.id, actor_name: user.name, actor_role: user.role, action: "attachment.deleted", entity: "startup_attachment", entity_id: id });
   revalidatePath("/startup/profile");
 }
 
@@ -350,6 +394,7 @@ export async function updateAccount(formData: FormData) {
   if (taken) redirect("/account?error=email-taken");
   await db.collection<Doc>("users").updateOne({ _id: user.id }, { $set: { name, email } });
   await createSession(user.id, user.role, name);
+  logAudit(db, { actor_user_id: user.id, actor_name: name, actor_role: user.role, action: "account.updated", entity: "user", entity_id: user.id, meta: {} });
   revalidatePath("/account");
   redirect("/account?saved=profile");
 }
@@ -367,6 +412,7 @@ export async function changePassword(formData: FormData) {
   const ok = row ? bcrypt.compareSync(current, row.password_hash) : false;
   if (!ok) redirect("/account?error=current-password");
   await db.collection<Doc>("users").updateOne({ _id: user.id }, { $set: { password_hash: bcrypt.hashSync(next, 10) } });
+  logAudit(db, { actor_user_id: user.id, actor_name: user.name, actor_role: user.role, action: "account.password_changed", entity: "user", entity_id: user.id, meta: {} });
   revalidatePath("/account");
   redirect("/account?saved=password");
 }

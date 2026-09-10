@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeInit } from "@/components/ThemeToggle";
 import "./globals.css";
@@ -19,7 +20,10 @@ export const metadata: Metadata = {
     "A structured end-to-end mechanism for challenge identification, startup discovery, eligibility screening, expert evaluation, sandbox pilots, milestone-based contracting, performance measurement, payment, independent validation and scale-up decisions.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  // Nonce forwarded by middleware for the Content-Security-Policy.
+  // Note: reading headers here opts the whole app into dynamic rendering.
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
   return (
     <html
       lang="en"
@@ -27,7 +31,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <ThemeInit />
+        <ThemeInit nonce={nonce} />
         {children}
       </body>
     </html>

@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import { redirect } from "next/navigation";
 import { getDb, Doc } from "../db";
 import { createSession, deleteSession } from "../session";
-import { checkRateLimit } from "../rate-limit";
+import { checkLoginLimit } from "../rate-limit-mongo";
 import { normalizeEmail } from "../validate";
 
 export type LoginState = {
@@ -38,7 +38,7 @@ export async function login(_prev: LoginState, formData: FormData) {
   // Brute-force protection: per-account window (10 attempts / 10 min).
   // Network-level throttling belongs at the edge (Vercel Firewall,
   // Cloudflare, nginx) in front of multi-instance deployments.
-  if (!checkRateLimit(`login:email:${email}`, 10, 10 * 60 * 1000).ok) {
+  if (!(await checkLoginLimit(`login:email:${email}`, 10, 10 * 60 * 1000)).ok) {
     return { error: "Too many sign-in attempts for this account. Please try again in a few minutes.", email };
   }
 

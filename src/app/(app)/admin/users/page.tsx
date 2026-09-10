@@ -1,12 +1,25 @@
+import { CheckCircle2, XCircle } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { getAllUsers } from "@/lib/data";
 import { Card, Field, inputCls, SubmitButton } from "@/components/ui";
 import { roleLabels } from "@/lib/format";
-import { createUser, updateUserRole, deleteUser } from "@/lib/actions/domain";
+import { createUser, resetUserPassword, updateUserRole, deleteUser } from "@/lib/actions/domain";
 
-export default async function AdminUsers() {
+const notices: Record<string, { ok: boolean; text: string }> = {
+  "saved=password-reset": { ok: true, text: "Temporary password set. Share it with the user through a separate channel." },
+  "error=password-short": { ok: false, text: "Temporary password must be at least 8 characters." },
+  "error=user-missing": { ok: false, text: "That user no longer exists." },
+};
+
+export default async function AdminUsers({
+  searchParams,
+}: {
+  searchParams: Promise<{ saved?: string; error?: string }>;
+}) {
   await requireRole(["admin"]);
   const users = await getAllUsers();
+  const sp = await searchParams;
+  const flash = sp.saved ? notices[`saved=${sp.saved}`] : sp.error ? notices[`error=${sp.error}`] : null;
 
   return (
     <div className="space-y-6">
@@ -16,6 +29,24 @@ export default async function AdminUsers() {
           Manage registry of departments, startups, evaluators and platform admins.
         </p>
       </div>
+
+      {flash && (
+        <div
+          role={flash.ok ? "status" : "alert"}
+          className={`flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-medium ${
+            flash.ok
+              ? "border-verified/25 bg-verified/10 text-[#1f8a3d] dark:border-verified/25 dark:bg-verified/15 dark:text-[#32d74b]"
+              : "border-critical/25 bg-critical/10 text-[#c22f2f] dark:border-critical/30 dark:bg-critical/15 dark:text-[#ff6961]"
+          }`}
+        >
+          {flash.ok ? (
+            <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden />
+          ) : (
+            <XCircle className="h-4 w-4 shrink-0" aria-hidden />
+          )}
+          {flash.text}
+        </div>
+      )}
 
       <Card title="Add User">
         <form action={createUser} className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -80,6 +111,20 @@ export default async function AdminUsers() {
                     <form action={deleteUser} className="inline">
                       <input type="hidden" name="id" value={u.id} />
                       <SubmitButton variant="ghost" size="sm" className="text-[#c22f2f]">Delete</SubmitButton>
+                    </form>
+                    <form action={resetUserPassword} className="mt-1.5 flex items-center gap-1.5">
+                      <input type="hidden" name="id" value={u.id} />
+                      <input
+                        type="text"
+                        name="temp_password"
+                        required
+                        minLength={8}
+                        autoComplete="off"
+                        placeholder="Temp password"
+                        aria-label={`Temporary password for ${u.email}`}
+                        className="w-32 rounded-full border border-black/10 bg-transparent px-2 py-1 text-xs dark:border-white/15"
+                      />
+                      <SubmitButton variant="ghost" size="sm">Reset</SubmitButton>
                     </form>
                   </td>
                 </tr>

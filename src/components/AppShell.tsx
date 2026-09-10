@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Building2, ChevronUp, ClipboardCheck, Compass, FileText, FlaskConical, Inbox, LayoutDashboard, LogOut, PlusCircle, Settings2, Users } from "lucide-react";
+import { Building2, ChevronUp, ClipboardCheck, Compass, FileText, FlaskConical, Inbox, LayoutDashboard, LogOut, PlusCircle, ScrollText, Settings2, Users } from "lucide-react";
 import { logout } from "@/lib/actions/auth";
 import { roleLabels } from "@/lib/format";
 import type { Role } from "@/lib/db";
@@ -59,6 +59,7 @@ const navConfig: Record<Role, SideNavGroup[]> = {
         { href: "/admin", label: "Overview", icon: LayoutDashboard },
         { href: "/admin/users", label: "Users & Roles", icon: Users },
         { href: "/admin/templates", label: "Templates", icon: FileText },
+        { href: "/admin/audit", label: "Audit Log", icon: ScrollText },
       ],
     },
   ],
@@ -85,6 +86,7 @@ const mobileItems: Record<Role, MobileNavItem[]> = {
     { href: "/admin", label: "Overview", icon: LayoutDashboard },
     { href: "/admin/users", label: "Users", icon: Users },
     { href: "/admin/templates", label: "Templates", icon: FileText },
+    { href: "/admin/audit", label: "Audit", icon: ScrollText },
   ],
 };
 

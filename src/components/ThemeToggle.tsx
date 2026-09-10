@@ -4,8 +4,8 @@ import { Moon, Sun } from "lucide-react";
 
 const THEME_SCRIPT = `(function(){try{var t=localStorage.getItem("theme");if(t==="dark"||(!t&&window.matchMedia("(prefers-color-scheme: dark)").matches)){document.documentElement.classList.add("dark")}}catch(e){}})();`;
 
-export function ThemeInit() {
-  return <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />;
+export function ThemeInit({ nonce }: { nonce?: string }) {
+  return <script nonce={nonce} dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />;
 }
 
 export function ThemeToggle({ light = false }: { light?: boolean }) {

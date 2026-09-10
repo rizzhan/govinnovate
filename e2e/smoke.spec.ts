@@ -60,3 +60,29 @@ test("health endpoint reports ok", async ({ request }) => {
   expect(body.status).toBe("ok");
   expect(body.db).toBe("up");
 });
+
+test("no CSP violations or page errors across key flows", async ({ page }) => {
+  const problems: string[] = [];
+  page.on("console", (msg) => {
+    if (msg.type() === "error") problems.push(`console: ${msg.text().slice(0, 200)}`);
+  });
+  page.on("pageerror", (err) => problems.push(`pageerror: ${String(err).slice(0, 200)}`));
+  page.on("response", (res) => {
+    if (res.url().includes("/_next/") && res.status() >= 400) {
+      problems.push(`bad asset: ${res.status()} ${res.url().slice(0, 120)}`);
+    }
+  });
+
+  await page.goto("/");
+  await page.getByRole("button", { name: /toggle color theme/i }).click();
+  await page.goto("/templates");
+  await page.getByPlaceholder("Search templates...").fill("kpi");
+  await page.getByRole("button", { name: /view template/i }).first().click();
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await page.goto("/login");
+  await expect(page.getByRole("button", { name: /^sign in$/i })).toBeVisible();
+
+  const csp = problems.filter((p) => /content security policy|violates|blocked|csp/i.test(p));
+  expect(csp).toEqual([]);
+  expect(problems).toEqual([]);
+});

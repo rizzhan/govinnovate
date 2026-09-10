@@ -64,6 +64,7 @@ npm run start
 | `MONGODB_URI` | yes | Atlas connection string, e.g. `mongodb+srv://user:pass@cluster.mongodb.net/govinnovate?retryWrites=true&w=majority` |
 | `MONGODB_DB` | no | Overrides the database name from the URI |
 | `SESSION_SECRET` | yes (prod) | JWT signing secret — generate with `openssl rand -base64 32`. The app refuses to boot in production without one |
+| `RATE_LIMIT_STORE` | no | `memory` (default, single instance) or `mongo` (shared across instances via Atlas) |
 | `ALLOW_DESTRUCTIVE_SEED` | no | Must be `"true"` to allow `npm run seed` against production |
 
 ### Tests
@@ -116,8 +117,9 @@ docker compose up --build -d   # reads .env, serves on :3000, health-checked
 
 **Admin portal** (`/admin`)
 - Platform overview & pipeline distribution
-- User & role management
+- User & role management (including admin-assisted password resets)
 - Standard templates library management
+- Audit log viewer (who did what, with amounts and refs)
 
 **Public**
 - Marketing landing page with the 9-stage pathway
@@ -140,35 +142,48 @@ src/
 │   │   ├── startup/      # Startup: browse, apply, pilots, profile
 │   │   ├── evaluator/    # Evaluator scoring workspace
 │   │   ├── account/      # Self-service name, email, password
-│   │   └── admin/        # Overview, users, templates
+│   │   └── admin/        # Overview, users, templates, audit log
 │   ├── api/health/       # Liveness probe (DB ping)
 │   ├── login/            # Sign-in page
 │   ├── templates/        # Public standard-templates library
+│   ├── error.tsx         # Route-level recovery panel
+│   ├── global-error.tsx  # Last-resort failure page
 │   ├── layout.tsx
 │   └── page.tsx          # Marketing landing page
 ├── components/           # UI kit, AppShell, PipelineVisual
 ├── e2e/                  # Playwright browser smoke tests
+├── middleware.ts         # Nonce CSP + structured access log
 └── lib/
+    ├── audit.ts          # Append-only audit writer/reader
     ├── db.ts             # Mongo connection, numeric id counters
     ├── migrate.ts        # Versioned migration runner
-    ├── migrations/       # 001-base (indexes, counters), …
+    ├── migrations/       # 001-base (indexes, counters), 002-audit-log, …
     ├── seed.ts           # Demo data (dev only)
     ├── session.ts        # JWT session management (cookies)
     ├── session-crypto.ts # Pure sign/verify (unit-tested)
     ├── auth.ts           # DAL: role-based auth guards
     ├── data.ts           # Query layer
     ├── env.ts            # Env validation (fail-fast in prod)
-    ├── rate-limit.ts     # Login brute-force protection
+    ├── rate-limit.ts     # In-process limiter (+ mongo-backed variant)
     ├── validate.ts       # Input validators
     ├── format.ts         # INR/date/status helpers
     └── actions/          # Server Actions (auth, domain, templates)
 ```
+
+## Operations runbook
+
+- **Health:** `GET /api/health` returns `{status, db, migration, uptime_s}` (`503` when the database is unreachable). Point any uptime monitor (Uptime Kuma, Better Uptime) at it.
+- **Logs:** every request emits one JSON line (`method`, `path`, `ms`); server errors include the digest shown to users, so reports are correlatable.
+- **Deploy order:** set env → `npm run migrate` → `npm run build` → `npm run start` (or `docker compose up --build -d`).
+- **Backups:** Atlas M0/M2/M5 have no automated snapshots — schedule `mongodump` or move to M10+ before holding real data.
+- **Forgot password:** users change it with the current password at `/account`; otherwise an admin sets a temporary one from `/admin/users` (the reset itself is audit-logged).
 
 ## Security notes
 
 - Passwords hashed with bcrypt; JWT sessions are HttpOnly + SameSite cookies.
 - Every page and server action re-verifies the session and role.
 - `SESSION_SECRET` is **required** in production — the app refuses to boot without it.
-- Sign-in is rate-limited (10 attempts / 10 min per account); put a WAF/CDN in front for network-level throttling.
-- Security headers (nosniff, DENY framing, referrer policy, HSTS in prod) are set in `next.config.ts`.
+- Sign-in is rate-limited (10 attempts / 10 min per account; set `RATE_LIMIT_STORE=mongo` for shared limits across instances); put a WAF/CDN in front for network-level throttling.
+- Security headers (nosniff, DENY framing, referrer policy, HSTS in prod) are set in `next.config.ts`, plus a per-request **nonce CSP** enforced by `middleware.ts` (verified violation-free by the E2E suite).
+- Every governance and payment event is written to an append-only **audit log** (`/admin/audit`): publishes, approvals, milestone verify/pay with amounts and refs, scale decisions, user and template administration.
 - `getCurrentUser` never loads the password hash; destructive reseed is blocked in production.
