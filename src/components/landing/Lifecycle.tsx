@@ -171,7 +171,7 @@ export default function Lifecycle() {
                   <span
                     className={`flex h-12 w-12 items-center justify-center rounded-2xl border transition-all duration-200 ${
                       activeStage
-                        ? "border-accent/50 bg-gradient-to-br from-accent to-violet text-white shadow-[0_8px_20px_rgba(0,113,227,0.35)]"
+                        ? "border-[#EA6A0A]/40 bg-gradient-to-br from-[#EA6A0A] to-[#0E7A3C] text-white shadow-[0_8px_20px_rgba(200,110,10,0.35)]"
                         : "border-black/10 bg-white/80 text-ink-2 group-hover:border-accent/30 group-hover:text-accent dark:border-white/10 dark:bg-white/10 dark:text-white/60 dark:group-hover:text-white"
                     }`}
                   >

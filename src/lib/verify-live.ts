@@ -72,7 +72,7 @@ async function main() {
   // ---- rendered pages (normalized: React comment nodes + HTML entities) ----
   const normalize = (html: string) =>
     html
-      .replace(/<!--.*?-->/gs, "")
+      .replace(/<!--[\s\S]*?-->/g, "")
       .replace(/&amp;/g, "&")
       .replace(/&#x27;/g, "'")
       .replace(/&quot;/g, '"')

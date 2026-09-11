@@ -128,7 +128,7 @@ export function Funnel({ steps }: { steps: FunnelStep[] }) {
   return (
     <div className="relative">
       <div
-        className="absolute inset-x-4 top-0 h-[3px] rounded-full bg-gradient-to-r from-accent via-violet to-verified opacity-80"
+        className="absolute inset-x-4 top-0 h-[3px] rounded-full bg-gradient-to-r from-[#EA6A0A] via-[#C07F16] to-[#0E7A3C] opacity-80"
         aria-hidden
       />
       <div className="grid grid-cols-2 gap-x-4 gap-y-9 pt-6 sm:grid-cols-3 lg:grid-cols-6">

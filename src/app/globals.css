@@ -144,14 +144,14 @@ body::after {
 }
 
 .text-gradient {
-  background: linear-gradient(96deg, #0a66c2 0%, #5b4cdb 58%, #6b6478 112%);
+  background: linear-gradient(96deg, #ea6a0a 0%, #c07f16 48%, #0e7a3c 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
 .dark .text-gradient {
-  background: linear-gradient(96deg, #4da3ff 0%, #8f7bff 58%, #bdb7c6 112%);
+  background: linear-gradient(96deg, #ff9e45 0%, #e0a83c 48%, #35c759 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;

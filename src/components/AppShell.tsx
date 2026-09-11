@@ -138,7 +138,7 @@ export default function AppShell({
               className="animate-fade-in absolute inset-x-4 bottom-full z-20 mb-2 overflow-hidden rounded-2xl border border-white/10 bg-[#232326]/95 shadow-[0_16px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl"
             >
               <div className="flex items-center gap-3 px-4 py-3.5">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-accent to-violet text-[13px] font-semibold text-white">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#EA6A0A] to-[#0E7A3C] text-[13px] font-semibold text-white">
                   {user.name.charAt(0)}
                 </span>
                 <div className="min-w-0">
@@ -187,7 +187,7 @@ export default function AppShell({
             aria-haspopup="menu"
             className="flex w-full items-center gap-3 rounded-2xl p-1.5 text-left transition-colors hover:bg-white/5 active:scale-[0.99]"
           >
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-accent to-violet text-sm font-semibold text-white">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#EA6A0A] to-[#0E7A3C] text-sm font-semibold text-white">
               {user.name.charAt(0)}
             </span>
             <span className="min-w-0 flex-1">

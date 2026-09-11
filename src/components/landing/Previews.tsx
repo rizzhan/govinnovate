@@ -101,7 +101,7 @@ export function EvaluationPreview({ record }: { record: EvalRecord | null }) {
                 <span className="w-36 shrink-0 text-xs text-ink-2">{c.label}</span>
                 <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-black/8 dark:bg-white/10">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-accent to-violet transition-all duration-500"
+                    className="h-full rounded-full bg-gradient-to-r from-[#EA6A0A] to-[#0E7A3C] transition-all duration-500"
                     style={{ width: `${Math.min(100, Math.max(4, c.score * 10))}%` }}
                   />
                 </div>

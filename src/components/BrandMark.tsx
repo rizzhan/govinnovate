@@ -6,7 +6,7 @@ export default function BrandMark({ size = "md", name }: { size?: "sm" | "md"; n
   return (
     <div className="flex items-center gap-3">
       <span
-        className={`flex ${box} shrink-0 items-center justify-center bg-gradient-to-br from-accent to-violet text-white shadow-[0_8px_20px_rgba(0,113,227,0.35)]`}
+        className={`flex ${box} shrink-0 items-center justify-center bg-gradient-to-br from-[#EA6A0A] to-[#0E7A3C] text-white shadow-[0_8px_20px_rgba(200,110,10,0.35)]`}
       >
         <Landmark className={icon} strokeWidth={1.75} aria-hidden />
       </span>
