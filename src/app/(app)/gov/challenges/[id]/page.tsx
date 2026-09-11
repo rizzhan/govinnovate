@@ -1,5 +1,5 @@
 import { requireRole } from "@/lib/auth";
-import { getChallenge, getApplications, getPilots } from "@/lib/data";
+import { getChallenge, getApplications, getPilots, isChallengeVisible } from "@/lib/data";
 import { notFound } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { ButtonLink, Card, StatusBadge, SubmitButton } from "@/components/ui";
@@ -15,10 +15,10 @@ import PipelineVisual from "@/components/PipelineVisual";
 import { publishChallenge } from "@/lib/actions/domain";
 
 export default async function ChallengeDetail({ params }: { params: Promise<{ id: string }> }) {
-  await requireRole(["government"]);
+  const user = await requireRole(["government"]);
   const { id } = await params;
   const challenge = await getChallenge(Number(id));
-  if (!challenge) notFound();
+  if (!challenge || !isChallengeVisible(user, challenge)) notFound();
 
   const applications = await getApplications({ challengeId: challenge.id });
   const pilots = await getPilots({ challengeId: challenge.id });

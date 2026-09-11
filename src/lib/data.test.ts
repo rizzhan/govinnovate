@@ -15,10 +15,12 @@ import {
   getPilot,
   getPilots,
   getScaleUpDecision,
+  getScopedChallengeIds,
   getStartupProfile,
   getStats,
   getTemplate,
   getTemplates,
+  isChallengeVisible,
 } from "./data";
 
 let mongod: MongoMemoryServer;
@@ -145,5 +147,34 @@ describe("numeric id counters", () => {
     const a = await getNextId("e2e-counter-check");
     const b = await getNextId("e2e-counter-check");
     expect(b).toBe(a + 1);
+  });
+});
+
+describe("department scoping", () => {
+  it("sees own plus same-department challenges only", async () => {
+    await db.collection<Doc>("users").insertOne({ _id: 10, name: "Other", email: "o@test.in", password_hash: "x", role: "government", org: "", department: "D9", designation: "", phone: "", created_at: "" });
+    await db.collection<Doc>("challenges").insertOne({ _id: 10, title: "Other", description: "", outcome_statement: "", department: "D9", sector: "", budget_min: 0, budget_max: 0, status: "open", timeline: "", created_by: 10, created_at: "" });
+
+    // User 1 created challenges 1-2 (D1/D2): sees both, not 10.
+    expect(await getScopedChallengeIds({ id: 1, department: "D1" })).toEqual(
+      expect.arrayContaining([1, 2])
+    );
+    expect(await getScopedChallengeIds({ id: 1, department: "D1" })).not.toContain(10);
+    // User 10 (D9): sees only their own.
+    expect(await getScopedChallengeIds({ id: 10, department: "D9" })).toEqual([10]);
+    // No department: only own creations.
+    expect(await getScopedChallengeIds({ id: 10 })).toEqual([10]);
+
+    expect(isChallengeVisible({ id: 1, department: "D1" }, { created_by: 2, department: "D1" })).toBe(true);
+    expect(isChallengeVisible({ id: 1, department: "D1" }, { created_by: 1, department: "D2" })).toBe(true);
+    expect(isChallengeVisible({ id: 1, department: "D1" }, { created_by: 9, department: "D9" })).toBe(false);
+    expect(isChallengeVisible({ id: 1 }, { created_by: 9, department: "D1" })).toBe(false);
+  });
+
+  it("filters applications and pilots to scoped challenges", async () => {
+    expect((await getApplications({ challengeIds: [1] })).map((a) => a.id)).toEqual([1]);
+    expect(await getApplications({ challengeIds: [999] })).toEqual([]);
+    expect((await getPilots({ challengeIds: [1] })).map((p) => p.id)).toEqual([1]);
+    expect(await getPilots({ challengeIds: [999] })).toEqual([]);
   });
 });

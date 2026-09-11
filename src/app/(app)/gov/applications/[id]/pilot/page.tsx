@@ -1,15 +1,17 @@
 import { requireRole } from "@/lib/auth";
-import { getApplication, getPilots } from "@/lib/data";
+import { getApplication, getChallenge, getPilots, isChallengeVisible } from "@/lib/data";
 import { notFound } from "next/navigation";
 import { ButtonLink, Card, Field, inputCls, SubmitButton } from "@/components/ui";
 import { formatINR } from "@/lib/format";
 import { createPilot } from "@/lib/actions/domain";
 
 export default async function PilotFormPage({ params }: { params: Promise<{ id: string }> }) {
-  await requireRole(["government"]);
+  const user = await requireRole(["government"]);
   const { id: appId } = await params;
   const app = await getApplication(Number(appId));
   if (!app || app.status !== "shortlisted") notFound();
+  const host = await getChallenge(app.challenge_id);
+  if (!host || !isChallengeVisible(user, host)) notFound();
 
   const existing = (await getPilots()).find((p) => p.application_id === app.id);
   const suggestedBudget = Math.round((app.ask_amount || 2500000) * 0.4);

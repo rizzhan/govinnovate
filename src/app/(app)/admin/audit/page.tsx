@@ -1,13 +1,13 @@
-import { ScrollText } from "lucide-react";
+import { ScrollText, TriangleAlert } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { getDb } from "@/lib/db";
-import { getAuditLog } from "@/lib/audit";
+import { getAuditLog, getErrorEvents } from "@/lib/audit";
 import { Card, EmptyState, StatusBadge } from "@/components/ui";
 import { formatDate } from "@/lib/format";
 
 function toneFor(action: string): "success" | "warning" | "danger" | "neutral" {
   if (/(^|\.)paid$/.test(action) || action.endsWith(".submitted") || action.endsWith(".created")) return "success";
-  if (/deleted|password/.test(action)) return "danger";
+  if (/deleted|password|failed/.test(action)) return "danger";
   if (/role_changed|status_changed|scale_decision/.test(action)) return "warning";
   return "neutral";
 }
@@ -30,7 +30,7 @@ function metaSummary(meta: Record<string, any> | undefined): string {
 export default async function AdminAudit() {
   await requireRole(["admin"]);
   const db = await getDb();
-  const entries = await getAuditLog(db, 100);
+  const [entries, errors] = await Promise.all([getAuditLog(db, 100), getErrorEvents(db, 20)]);
 
   return (
     <div className="space-y-6">
@@ -85,6 +85,36 @@ export default async function AdminAudit() {
               </tbody>
             </table>
           </div>
+        </Card>
+      )}
+
+      <div>
+        <h2 className="text-lg font-semibold tracking-tight text-ink">Recent system errors</h2>
+        <p className="mt-1 text-sm text-ink-2">
+          Server-side failures from the last stretch, newest first. Match the digest with user reports.
+        </p>
+      </div>
+
+      {errors.length === 0 ? (
+        <Card>
+          <p className="text-sm text-ink-2">No errors recorded. Quiet is good.</p>
+        </Card>
+      ) : (
+        <Card>
+          <ul className="divide-y divide-black/5 dark:divide-white/10">
+            {errors.map((e) => (
+              <li key={e.id} className="flex items-start gap-3 py-2.5">
+                <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-critical" aria-hidden />
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-ink">{e.message}</p>
+                  <p className="mt-0.5 truncate font-mono text-[11px] text-ink-3">
+                    {e.created_at} · {e.route || e.path}
+                    {e.digest ? ` · ${e.digest}` : ""}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
         </Card>
       )}
     </div>

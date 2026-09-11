@@ -7,10 +7,24 @@ import { requireUser, requireRole } from "../auth";
 import { createSession } from "../session";
 import { logAudit } from "../audit";
 import { normalizeEmail, normalizeUrl } from "../validate";
+import { isChallengeVisible } from "../data";
 
 function int(v: FormDataEntryValue | null): number {
   const n = Number(v);
   return Number.isFinite(n) ? n : 0;
+}
+
+/** Department fence for mutating actions: UI guards alone are bypassable. */
+async function requireChallengeScope(
+  user: { id: number; department?: string },
+  challengeId: number
+) {
+  const db = await getDb();
+  const c = await db.collection<Doc>("challenges").findOne({ _id: challengeId });
+  if (!c || !isChallengeVisible(user, { created_by: c.created_by, department: c.department ?? "" })) {
+    throw new Error("Forbidden: challenge is outside your department.");
+  }
+  return c;
 }
 
 export async function createChallenge(formData: FormData) {
@@ -36,9 +50,10 @@ export async function createChallenge(formData: FormData) {
 }
 
 export async function publishChallenge(formData: FormData) {
-  await requireRole(["government"]);
+  const user = await requireRole(["government"]);
   const db = await getDb();
   const id = int(formData.get("id"));
+  await requireChallengeScope(user, id);
   await db.collection<Doc>("challenges")
     .updateOne({ _id: id }, { $set: { status: "open", status_last_updated: nowIso() } });
   revalidatePath("/gov");
@@ -50,6 +65,9 @@ export async function deleteChallenge(formData: FormData) {
   const db = await getDb();
   const id = int(formData.get("id"));
   const doomed = await db.collection<Doc>("challenges").findOne({ _id: id });
+  if (!doomed || !isChallengeVisible(user, { created_by: doomed.created_by, department: doomed.department ?? "" })) {
+    throw new Error("Forbidden: challenge is outside your department.");
+  }
   // Manual cascade (parity with the previous SQL foreign keys).
   const apps = await db.collection<Doc>("applications").find({ challenge_id: id }).project({ _id: 1 }).toArray();
   const appIds = apps.map((a) => a._id);
@@ -123,6 +141,8 @@ export async function updateApplicationStatus(formData: FormData) {
   const id = int(formData.get("id"));
   const status = String(formData.get("status") || "");
   const prev = await db.collection<Doc>("applications").findOne({ _id: id });
+  if (!prev) return;
+  await requireChallengeScope(user, prev.challenge_id);
   await db.collection<Doc>("applications").updateOne({ _id: id }, { $set: { status, updated_at: nowIso() } });
   logAudit(db, { actor_user_id: user.id, actor_name: user.name, actor_role: user.role, action: "application.status_changed", entity: "application", entity_id: id, meta: { from: prev?.status ?? "", to: status } });
   revalidatePath("/gov");
@@ -158,6 +178,7 @@ export async function createPilot(formData: FormData) {
   const user = await requireRole(["government"]);
   const db = await getDb();
   const challengeId = int(formData.get("challenge_id"));
+  await requireChallengeScope(user, challengeId);
   const pilotId = await getNextId("pilots");
   const title = String(formData.get("title") || "");
   const budget = int(formData.get("budget"));
@@ -189,6 +210,9 @@ export async function updatePilotStatus(formData: FormData) {
   const db = await getDb();
   const id = int(formData.get("id"));
   const status = String(formData.get("status") || "");
+  const target = await db.collection<Doc>("pilots").findOne({ _id: id });
+  if (!target) return;
+  await requireChallengeScope(user, target.challenge_id);
   await db.collection<Doc>("pilots").updateOne({ _id: id }, { $set: { status } });
   logAudit(db, { actor_user_id: user.id, actor_name: user.name, actor_role: user.role, action: "pilot.status_changed", entity: "pilot", entity_id: id, meta: { to: status } });
   if (status === "active") {
@@ -206,6 +230,9 @@ export async function addMilestone(formData: FormData) {
   const user = await requireRole(["government"]);
   const db = await getDb();
   const pilotId = int(formData.get("pilot_id"));
+  const hostPilot = await db.collection<Doc>("pilots").findOne({ _id: pilotId });
+  if (!hostPilot) return;
+  await requireChallengeScope(user, hostPilot.challenge_id);
   const title = String(formData.get("title") || "");
   const amount = int(formData.get("amount"));
   const r = await db.collection<Doc>("milestones").insertOne({
@@ -233,6 +260,10 @@ export async function updateMilestone(formData: FormData) {
   const id = int(formData.get("id"));
   const action = String(formData.get("action") || "");
   const ms = await db.collection<Doc>("milestones").findOne({ _id: id });
+  if (!ms) return;
+  const msPilot = await db.collection<Doc>("pilots").findOne({ _id: ms.pilot_id });
+  if (!msPilot) return;
+  await requireChallengeScope(user, msPilot.challenge_id);
   if (action === "verify") {
     await db.collection<Doc>("milestones")
       .updateOne({ _id: id }, { $set: { status: "verified", verified_by: user.id, verified_at: nowIso() } });
@@ -254,6 +285,9 @@ export async function submitScaleDecision(formData: FormData) {
   const user = await requireRole(["government"]);
   const db = await getDb();
   const pilotId = int(formData.get("pilot_id"));
+  const hostPilot = await db.collection<Doc>("pilots").findOne({ _id: pilotId });
+  if (!hostPilot) return;
+  await requireChallengeScope(user, hostPilot.challenge_id);
   const decision = String(formData.get("decision") || "");
   const districts = String(formData.get("districts") || "");
   const r = await db.collection<Doc>("scale_up_decisions").insertOne({

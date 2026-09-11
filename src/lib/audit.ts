@@ -2,6 +2,9 @@ import type { Db } from "mongodb";
 import { nowIso, type Doc } from "./db";
 
 export type AuditAction =
+  | "auth.login_success"
+  | "auth.login_failed"
+  | "auth.logout"
   | "challenge.published"
   | "challenge.deleted"
   | "challenge.created"
@@ -56,4 +59,26 @@ export async function getAuditLog(db: Db, limit = 100) {
     const { _id, ...rest } = d;
     return { id: _id, ...rest };
   }) as (AuditEntry & { id: number; created_at: string })[];
+}
+
+export type ErrorEvent = {
+  message: string;
+  digest: string;
+  route: string;
+  path: string;
+  created_at: string;
+};
+
+/** Newest system errors for the admin console (backed by a capped collection). */
+export async function getErrorEvents(db: Db, limit = 20) {
+  const docs = await db
+    .collection<Doc>("error_events")
+    .find({})
+    .sort({ _id: -1 })
+    .limit(limit)
+    .toArray();
+  return docs.map((d) => {
+    const { _id, ...rest } = d;
+    return { id: String(_id), ...rest };
+  }) as (ErrorEvent & { id: string })[];
 }

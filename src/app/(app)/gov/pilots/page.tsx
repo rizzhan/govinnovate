@@ -1,15 +1,18 @@
 import { ArrowRight, FlaskConical } from "lucide-react";
 import { requireRole } from "@/lib/auth";
-import { getPilots, getChallenge, getMilestones } from "@/lib/data";
+import { getPilots, getChallenge, getMilestones, getScopedChallengeIds } from "@/lib/data";
+import { notFound } from "next/navigation";
 import { ButtonLink, Card, EmptyState, StatusBadge } from "@/components/ui";
 import { formatDate, formatINR, pilotStatusLabels, pilotStatusTone } from "@/lib/format";
 import { pilotStatusIcon } from "@/components/status";
 
 export default async function GovPilots({ searchParams }: { searchParams: Promise<{ challenge?: string }> }) {
-  await requireRole(["government"]);
+  const user = await requireRole(["government"]);
   const sp = await searchParams;
   const challengeId = sp.challenge ? Number(sp.challenge) : undefined;
-  const pilots = await getPilots(challengeId ? { challengeId } : undefined);
+  const scopedIds = await getScopedChallengeIds(user);
+  if (challengeId && !scopedIds.includes(challengeId)) notFound();
+  const pilots = await getPilots({ challengeIds: challengeId ? [challengeId] : scopedIds });
   const challenge = challengeId ? await getChallenge(challengeId) : undefined;
   const msByPilot = new Map<number, Awaited<ReturnType<typeof getMilestones>>>(
     await Promise.all(pilots.map(async (p) => [p.id, await getMilestones(p.id)] as const))

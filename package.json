@@ -12,7 +12,8 @@
     "db:local": "node_modules\\.cache\\mongodb-memory-server\\mongod-x64-win32-8.2.6.exe --dbpath .\\data\\mongo --port 27017 --bind_ip 127.0.0.1",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "verify:live": "tsx src/lib/verify-live.ts"
+    "verify:live": "tsx src/lib/verify-live.ts",
+    "load": "node load/run.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -31,6 +32,7 @@
     "@types/node": "^22.20.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "autocannon": "^8.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.3.4",
     "mongodb-memory-server": "^11.2.0",

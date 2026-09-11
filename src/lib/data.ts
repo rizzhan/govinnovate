@@ -58,15 +58,37 @@ export async function getChallenges(opts?: { by?: number; status?: string }) {
   return docs.map((d) => shaped<Challenge>(d) as Challenge);
 }
 
+export type ScopeUser = { id: number; department?: string };
+
+/**
+ * Department scoping: a government user sees challenges they created plus
+ * challenges from their own department. Everyone else is fenced out.
+ */
+export async function getScopedChallengeIds(user: ScopeUser): Promise<number[]> {
+  const challenges = await col<Challenge>("challenges");
+  const or: Record<string, any>[] = [{ created_by: user.id }];
+  if (user.department) or.push({ department: user.department });
+  const docs = await challenges.find({ $or: or }).project({ _id: 1 }).toArray();
+  return docs.map((d) => d._id as number);
+}
+
+export function isChallengeVisible(
+  user: ScopeUser,
+  c: { created_by: number; department: string }
+): boolean {
+  return c.created_by === user.id || (!!user.department && c.department === user.department);
+}
+
 export async function getChallenge(id: number) {
   const challenges = await col<Challenge>("challenges");
   return shaped<Challenge>(await challenges.findOne({ _id: id }));
 }
 
-export async function getApplications(opts?: { challengeId?: number; startupUserId?: number; status?: string }) {
+export async function getApplications(opts?: { challengeId?: number; challengeIds?: number[]; startupUserId?: number; status?: string }) {
   const applications = await col<Application>("applications");
   const q: Record<string, any> = {};
   if (opts?.challengeId) q.challenge_id = opts.challengeId;
+  else if (opts?.challengeIds) q.challenge_id = { $in: opts.challengeIds };
   if (opts?.startupUserId) q.startup_user_id = opts.startupUserId;
   if (opts?.status) q.status = opts.status;
   const apps = await applications.find(q).sort({ _id: -1 }).toArray();
@@ -133,11 +155,12 @@ export async function getEvaluationsForApplication(applicationId: number) {
   }) as (Record<string, any> & { evaluator_name: string })[];
 }
 
-export async function getPilots(opts?: { startupUserId?: number; challengeId?: number }) {
+export async function getPilots(opts?: { startupUserId?: number; challengeId?: number; challengeIds?: number[] }) {
   const pilots = await col("pilots");
   const q: Record<string, any> = {};
   if (opts?.startupUserId) q.startup_user_id = opts.startupUserId;
   if (opts?.challengeId) q.challenge_id = opts.challengeId;
+  else if (opts?.challengeIds) q.challenge_id = { $in: opts.challengeIds };
   const docs = await pilots.find(q).sort({ _id: -1 }).toArray();
   if (docs.length === 0) return [];
   const challengeIds = [...new Set(docs.map((p) => p.challenge_id))];

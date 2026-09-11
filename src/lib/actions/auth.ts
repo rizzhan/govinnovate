@@ -6,6 +6,8 @@ import { getDb, Doc } from "../db";
 import { createSession, deleteSession } from "../session";
 import { checkLoginLimit } from "../rate-limit-mongo";
 import { normalizeEmail } from "../validate";
+import { logAudit } from "../audit";
+import { getCurrentUser } from "../auth";
 
 export type LoginState = {
   error?: string;
@@ -48,19 +50,27 @@ export async function login(_prev: LoginState, formData: FormData) {
     | null;
 
   if (!user) {
+    logAudit(db, { actor_user_id: 0, actor_name: email, actor_role: "unknown", action: "auth.login_failed", entity: "user", meta: { reason: "unknown-email" } });
     return { error: "No account found with that email.", email };
   }
 
   const valid = bcrypt.compareSync(password, user.password_hash);
   if (!valid) {
+    logAudit(db, { actor_user_id: user._id, actor_name: user.name, actor_role: user.role, action: "auth.login_failed", entity: "user", entity_id: user._id, meta: { reason: "wrong-password" } });
     return { error: "Incorrect password.", email };
   }
 
+  logAudit(db, { actor_user_id: user._id, actor_name: user.name, actor_role: user.role, action: "auth.login_success", entity: "user", entity_id: user._id, meta: {} });
   await createSession(user._id, user.role as any, user.name);
   redirect(getHomeForRole(user.role));
 }
 
 export async function logout() {
+  const user = await getCurrentUser();
+  const db = await getDb();
   await deleteSession();
+  if (user) {
+    logAudit(db, { actor_user_id: user.id, actor_name: user.name, actor_role: user.role, action: "auth.logout", entity: "user", entity_id: user.id, meta: {} });
+  }
   redirect("/login");
 }

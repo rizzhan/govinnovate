@@ -1,6 +1,6 @@
 import { ArrowRight, FlaskConical, Plus, Radar, Rocket, Target } from "lucide-react";
 import { requireRole } from "@/lib/auth";
-import { getChallenges, getApplications, getPilots } from "@/lib/data";
+import { getChallenges, getApplications, getPilots, getScopedChallengeIds } from "@/lib/data";
 import { ButtonLink, Card, StatCard, EmptyState, StatusBadge, SubmitButton } from "@/components/ui";
 import {
   applicationStatusLabels,
@@ -22,8 +22,9 @@ import { publishChallenge, deleteChallenge } from "@/lib/actions/domain";
 export default async function GovDashboard() {
   const user = await requireRole(["government"]);
   const challenges = await getChallenges({ by: user.id });
-  const applications = await getApplications();
-  const pilots = await getPilots();
+  const scopedIds = await getScopedChallengeIds(user);
+  const applications = await getApplications({ challengeIds: scopedIds });
+  const pilots = await getPilots({ challengeIds: scopedIds });
 
   const openChallenges = challenges.filter((c) => c.status === "open").length;
   const activePilots = pilots.filter((p) => p.status === "active" || p.status === "design" || p.status === "scaling").length;

@@ -1,6 +1,7 @@
 import { ArrowRight, Inbox } from "lucide-react";
 import { requireRole } from "@/lib/auth";
-import { getApplications, getChallenge } from "@/lib/data";
+import { getApplications, getChallenge, getScopedChallengeIds } from "@/lib/data";
+import { notFound } from "next/navigation";
 import { ButtonLink, Card, EmptyState, StatusBadge } from "@/components/ui";
 import { applicationStatusLabels, applicationStatusTone, formatDate, formatINR } from "@/lib/format";
 import { applicationStatusIcon } from "@/components/status";
@@ -10,10 +11,12 @@ export default async function GovApplications({
 }: {
   searchParams: Promise<{ challenge?: string }>;
 }) {
-  await requireRole(["government"]);
+  const user = await requireRole(["government"]);
   const sp = await searchParams;
   const challengeId = sp.challenge ? Number(sp.challenge) : undefined;
-  const apps = await getApplications(challengeId ? { challengeId } : undefined);
+  const scopedIds = await getScopedChallengeIds(user);
+  if (challengeId && !scopedIds.includes(challengeId)) notFound();
+  const apps = await getApplications({ challengeIds: challengeId ? [challengeId] : scopedIds });
   const challenge = challengeId ? await getChallenge(challengeId) : undefined;
 
   return (

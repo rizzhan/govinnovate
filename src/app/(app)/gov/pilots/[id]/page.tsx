@@ -1,6 +1,6 @@
 import { Check, Medal, ShieldCheck } from "lucide-react";
 import { requireRole } from "@/lib/auth";
-import { getPilot, getMilestones, getScaleUpDecision } from "@/lib/data";
+import { getPilot, getChallenge, getMilestones, getScaleUpDecision, isChallengeVisible } from "@/lib/data";
 import { notFound } from "next/navigation";
 import { ButtonLink, Card, Field, inputCls, StatusBadge, SubmitButton } from "@/components/ui";
 import { formatDate, formatINR, milestoneStatusLabels, milestoneStatusTone, pilotStatusLabels, pilotStatusTone, scaleDecisionLabels } from "@/lib/format";
@@ -8,10 +8,12 @@ import { milestoneStatusIcon, pilotStatusIcon } from "@/components/status";
 import { addMilestone, submitScaleDecision, updateMilestone, updatePilotStatus } from "@/lib/actions/domain";
 
 export default async function PilotDetail({ params }: { params: Promise<{ id: string }> }) {
-  await requireRole(["government"]);
+  const user = await requireRole(["government"]);
   const { id } = await params;
   const pilot = await getPilot(Number(id));
   if (!pilot) notFound();
+  const host = await getChallenge(pilot.challenge_id);
+  if (!host || !isChallengeVisible(user, host)) notFound();
 
   const milestones = await getMilestones(pilot.id);
   const scaleDecision = await getScaleUpDecision(pilot.id);

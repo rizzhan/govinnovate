@@ -1,6 +1,6 @@
 import { CheckCircle2, FlaskConical, XCircle } from "lucide-react";
 import { requireRole } from "@/lib/auth";
-import { getApplication, getEvaluationsForApplication, getPilots } from "@/lib/data";
+import { getApplication, getChallenge, getEvaluationsForApplication, getPilots, isChallengeVisible } from "@/lib/data";
 import { notFound } from "next/navigation";
 import { ButtonLink, Card, SubmitButton, StatusBadge } from "@/components/ui";
 import { applicationStatusLabels, applicationStatusTone, formatDate, formatINR } from "@/lib/format";
@@ -8,10 +8,12 @@ import { applicationStatusIcon } from "@/components/status";
 import { updateApplicationStatus } from "@/lib/actions/domain";
 
 export default async function GovApplicationDetail({ params }: { params: Promise<{ id: string }> }) {
-  await requireRole(["government"]);
+  const user = await requireRole(["government"]);
   const { id } = await params;
   const app = await getApplication(Number(id));
   if (!app) notFound();
+  const host = await getChallenge(app.challenge_id);
+  if (!host || !isChallengeVisible(user, host)) notFound();
 
   const evaluations = await getEvaluationsForApplication(app.id);
   const pilots = (await getPilots({ challengeId: app.challenge_id })).filter((p) => p.application_id === app.id);

@@ -173,7 +173,8 @@ src/
 ## Operations runbook
 
 - **Health:** `GET /api/health` returns `{status, db, migration, uptime_s}` (`503` when the database is unreachable). Point any uptime monitor (Uptime Kuma, Better Uptime) at it.
-- **Logs:** every request emits one JSON line (`method`, `path`, `ms`); server errors include the digest shown to users, so reports are correlatable.
+- **Monitoring (free):** every request emits one JSON log line; every server failure is persisted to a capped `error_events` collection and surfaced with its digest at `/admin/audit` → Recent system errors. For external alerting, add a free UptimeRobot/Better Uptime check on `/api/health` (1-minute interval) pointed at your on-call channel.
+- **Logs:** server errors include the digest shown to users, so reports are correlatable.
 - **Deploy order:** set env → `npm run migrate` → `npm run build` → `npm run start` (or `docker compose up --build -d`).
 - **Backups:** Atlas M0/M2/M5 have no automated snapshots — schedule `mongodump` or move to M10+ before holding real data.
 - **Forgot password:** users change it with the current password at `/account`; otherwise an admin sets a temporary one from `/admin/users` (the reset itself is audit-logged).
