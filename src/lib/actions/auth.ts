@@ -51,13 +51,13 @@ export async function login(_prev: LoginState, formData: FormData) {
 
   if (!user) {
     logAudit(db, { actor_user_id: 0, actor_name: email, actor_role: "unknown", action: "auth.login_failed", entity: "user", meta: { reason: "unknown-email" } });
-    return { error: "No account found with that email.", email };
+    return { error: "Invalid email or password.", email };
   }
 
   const valid = bcrypt.compareSync(password, user.password_hash);
   if (!valid) {
     logAudit(db, { actor_user_id: user._id, actor_name: user.name, actor_role: user.role, action: "auth.login_failed", entity: "user", entity_id: user._id, meta: { reason: "wrong-password" } });
-    return { error: "Incorrect password.", email };
+    return { error: "Invalid email or password.", email };
   }
 
   logAudit(db, { actor_user_id: user._id, actor_name: user.name, actor_role: user.role, action: "auth.login_success", entity: "user", entity_id: user._id, meta: {} });

@@ -118,6 +118,8 @@ export async function applyToChallenge(formData: FormData) {
   const user = await requireRole(["startup"]);
   const db = await getDb();
   const challengeId = int(formData.get("challenge_id"));
+  const challenge = await db.collection<Doc>("challenges").findOne({ _id: challengeId });
+  if (!challenge || challenge.status !== "open") redirect(`/startup/challenges/${challengeId}`);
   await db.collection<Doc>("applications").insertOne({
     _id: await getNextId("applications"),
     challenge_id: challengeId,
@@ -153,6 +155,8 @@ export async function submitEvaluation(formData: FormData) {
   await requireRole(["evaluator"]);
   const db = await getDb();
   const appId = int(formData.get("application_id"));
+  const target = await db.collection<Doc>("applications").findOne({ _id: appId });
+  if (!target || !["shortlisted", "selected"].includes(target.status)) return;
   const evaluatorId = (await requireUser()).id;
   const evaluator = await db.collection<Doc>("users").findOne({ _id: evaluatorId });
   const recommendation = String(formData.get("recommendation") || "");
@@ -323,6 +327,7 @@ export async function createUser(formData: FormData) {
   const dept = String(formData.get("department") || "");
   const password = String(formData.get("password") || "demo1234");
   if (!name || !email || !role) return;
+  if (password.length < 8) redirect("/admin/users?error=password-weak");
   const existing = await db.collection<Doc>("users").findOne({ email });
   if (existing) return;
   const hash = bcrypt.hashSync(password, 10);

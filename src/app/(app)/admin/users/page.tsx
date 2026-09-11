@@ -8,6 +8,7 @@ import { createUser, resetUserPassword, updateUserRole, deleteUser } from "@/lib
 const notices: Record<string, { ok: boolean; text: string }> = {
   "saved=password-reset": { ok: true, text: "Temporary password set. Share it with the user through a separate channel." },
   "error=password-short": { ok: false, text: "Temporary password must be at least 8 characters." },
+  "error=password-weak": { ok: false, text: "New user passwords must be at least 8 characters." },
   "error=user-missing": { ok: false, text: "That user no longer exists." },
 };
 
