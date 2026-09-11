@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Reveal from "@/components/Reveal";
 import {
   Activity,
   ArrowRight,
@@ -45,6 +46,7 @@ export function SectionHeading({
   className?: string;
 }) {
   return (
+    <Reveal>
     <div className={`${center ? "mx-auto max-w-2xl text-center" : "max-w-2xl"} ${className}`}>
       <p className="inline-flex items-center gap-2 rounded-full border border-black/5 bg-white/60 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-accent backdrop-blur dark:border-white/10 dark:bg-white/5">
         {eyebrow}
@@ -52,6 +54,7 @@ export function SectionHeading({
       <h2 className="mt-4 text-3xl font-semibold tracking-tight text-balance text-ink sm:text-4xl">{title}</h2>
       {sub && <p className="mt-3 text-[15px] leading-relaxed text-ink-2">{sub}</p>}
     </div>
+    </Reveal>
   );
 }
 

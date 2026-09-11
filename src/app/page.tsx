@@ -17,6 +17,7 @@ import {
 import { formatINR, scaleDecisionLabels } from "@/lib/format";
 import Lifecycle from "@/components/landing/Lifecycle";
 import AutoRefresh from "@/components/landing/AutoRefresh";
+import Reveal from "@/components/Reveal";
 import {
   FinalCTA,
   FlowStrip,
@@ -239,7 +240,9 @@ export default async function LandingPage() {
             sub="A single procurement lifecycle with defined hand-offs. Select any stage to see why it exists and which barrier it removes."
           />
           <div className="mt-12">
-            <Lifecycle />
+            <Reveal delay={120}>
+              <Lifecycle />
+            </Reveal>
           </div>
         </div>
       </section>
@@ -253,7 +256,9 @@ export default async function LandingPage() {
             sub="Departments enter with a problem. Startups exit with a scale contract. Every drop-off point is a conscious, auditable decision."
           />
           <div className="mt-12">
-            <Funnel steps={funnelSteps} />
+            <Reveal delay={120}>
+              <Funnel steps={funnelSteps} />
+            </Reveal>
           </div>
         </div>
       </section>
@@ -267,7 +272,9 @@ export default async function LandingPage() {
             sub="One mechanism, two workbenches — the same pipeline viewed through each stakeholder’s decisions."
           />
           <div className="mt-14">
-            <Journeys />
+            <Reveal delay={120}>
+              <Journeys />
+            </Reveal>
           </div>
         </div>
       </section>
@@ -281,18 +288,22 @@ export default async function LandingPage() {
             sub="Live views from the demo workspace — seeded with walkable figures so every number is traceable in the product."
           />
           <div className="mt-12 grid items-start gap-5 lg:grid-cols-[1.05fr_0.95fr]">
-            <DashboardPreview stats={stats} totalContracted={totalContracted} subtitle={dashboardSubtitle} />
-            <div className="space-y-5">
-              <EvaluationPreview record={evalRecord} />
-              <PilotPreview
-                title={pilot ? pilot.title : "Pilot · KPIs"}
-                status={pilot?.status ?? ""}
-                kpis={kpis}
-                paidValue={paidTotal}
-                verifiedValue={verifiedTotal}
-                scaleNote={scaleDecision?.validation_notes}
-              />
-            </div>
+            <Reveal delay={120} className="h-full">
+              <DashboardPreview stats={stats} totalContracted={totalContracted} subtitle={dashboardSubtitle} />
+            </Reveal>
+            <Reveal delay={220}>
+              <div className="space-y-5">
+                <EvaluationPreview record={evalRecord} />
+                <PilotPreview
+                  title={pilot ? pilot.title : "Pilot · KPIs"}
+                  status={pilot?.status ?? ""}
+                  kpis={kpis}
+                  paidValue={paidTotal}
+                  verifiedValue={verifiedTotal}
+                  scaleNote={scaleDecision?.validation_notes}
+                />
+              </div>
+            </Reveal>
           </div>
         </div>
       </section>
@@ -306,7 +317,9 @@ export default async function LandingPage() {
             sub="Each role opens into its own workspace — with the same evidence underneath."
           />
           <div className="mt-12">
-            <Roles stats={stats} />
+            <Reveal delay={120}>
+              <Roles stats={stats} />
+            </Reveal>
           </div>
         </div>
       </section>
@@ -320,7 +333,9 @@ export default async function LandingPage() {
             sub="Eligibility, scoring, pilot performance, validation and the final recommendation — visible at every stage."
           />
           <div className="mt-12">
-            <Transparency record={transparencyRecord} provenance={provenance} />
+            <Reveal delay={120}>
+              <Transparency record={transparencyRecord} provenance={provenance} />
+            </Reveal>
           </div>
         </div>
       </section>
@@ -328,14 +343,18 @@ export default async function LandingPage() {
       {/* Templates / compliance */}
       <section className="relative z-10 py-20 sm:py-24">
         <div className="mx-auto max-w-6xl px-6">
-          <TemplatesBand />
+          <Reveal>
+            <TemplatesBand />
+          </Reveal>
         </div>
       </section>
 
       {/* Final CTA */}
       <section className="relative z-10 py-24 sm:py-32">
         <div className="mx-auto max-w-6xl px-6">
-          <FinalCTA />
+          <Reveal>
+            <FinalCTA />
+          </Reveal>
         </div>
       </section>
 
