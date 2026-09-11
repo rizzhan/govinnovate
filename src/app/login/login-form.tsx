@@ -8,7 +8,7 @@ export function LoginForm() {
   const [state, formAction, pending] = useActionState<LoginState, FormData>(login, undefined);
 
   return (
-    <form action={formAction} className="mt-6 space-y-4">
+    <form action={formAction} noValidate className="mt-6 space-y-4">
       {state?.error && (
         <div className="rounded-xl border border-critical/20 bg-critical/10 px-3 py-2 text-sm text-[#c22f2f]">
           {state.error}
