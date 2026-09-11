@@ -11,7 +11,8 @@
     "migrate": "tsx src/lib/run-migrate.ts",
     "db:local": "node_modules\\.cache\\mongodb-memory-server\\mongod-x64-win32-8.2.6.exe --dbpath .\\data\\mongo --port 27017 --bind_ip 127.0.0.1",
     "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "verify:live": "tsx src/lib/verify-live.ts"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
