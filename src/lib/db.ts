@@ -13,7 +13,9 @@ type GlobalMongo = {
 const globalForMongo = globalThis as unknown as GlobalMongo;
 
 async function connect(uri: string): Promise<Db> {
-  const client = new MongoClient(uri);
+  // Capped pool: serverless hosts (Vercel) spin up many instances against
+  // Atlas M0's 500-connection ceiling — 10 per instance is plenty here.
+  const client = new MongoClient(uri, { maxPoolSize: 10 });
   await client.connect();
   globalForMongo.__mongoClient = client;
   return client.db(getMongoDbName());
