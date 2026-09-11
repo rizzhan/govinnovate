@@ -23,7 +23,7 @@ export default async function TemplatesPage() {
       <div className="fog-blob left-[-8%] top-[-10%] h-[480px] w-[480px] bg-accent/25" />
       <div className="fog-blob right-[-6%] top-[30%] h-[420px] w-[420px] bg-amber-400/20" />
 
-      <MarketingNav />
+      <MarketingNav section="templates" />
 
       <main className="relative z-10 mx-auto max-w-6xl px-6 pb-20 pt-10 sm:pt-12">
         <div className="max-w-2xl">
