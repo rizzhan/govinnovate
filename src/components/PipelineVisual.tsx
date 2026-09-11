@@ -26,7 +26,7 @@ export default function PipelineVisual({ currentStatus }: { currentStatus: strin
               <div
                 className={`flex flex-col items-center rounded-2xl border px-3.5 py-3 text-center backdrop-blur transition-all ${
                   isCurrent
-                    ? "border-accent/30 bg-accent/8 shadow-[0_8px_24px_rgba(0,113,227,0.18)]"
+                    ? "border-accent/30 bg-accent/8 shadow-[0_8px_24px_rgba(180,83,9,0.18)]"
                     : reached
                       ? "glass-chip"
                       : "border-black/5 bg-white/30 opacity-50 dark:bg-white/5"
@@ -35,9 +35,9 @@ export default function PipelineVisual({ currentStatus }: { currentStatus: strin
                 <span
                   className={`flex h-8 w-8 items-center justify-center rounded-full ${
                     isCurrent
-                      ? "bg-accent text-white shadow-[0_4px_12px_rgba(0,113,227,0.35)]"
+                      ? "bg-accent text-white shadow-[0_4px_12px_rgba(180,83,9,0.35)]"
                       : reached
-                        ? "bg-white/80 text-accent dark:bg-white/15 dark:text-sky-300"
+                        ? "bg-white/80 text-accent dark:bg-white/15 dark:text-amber-300"
                         : "bg-white/60 text-ink-3 dark:bg-white/10 dark:text-white/40"
                   }`}
                 >

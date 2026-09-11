@@ -73,7 +73,7 @@ export function FlowStrip() {
         <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-3">How the mechanism works</p>
         <Link
           href="/login"
-          className="inline-flex items-center gap-1 text-xs font-medium text-accent transition-colors hover:text-accent-dark"
+          className="inline-flex items-center gap-1 text-xs font-medium text-accent transition-colors hover:text-accent-dark dark:hover:text-amber-300"
         >
           See it live
           <ArrowRight className="h-3.5 w-3.5" aria-hidden />
@@ -86,7 +86,7 @@ export function FlowStrip() {
           const Icon = s.icon;
           return (
             <div key={s.label} className="relative flex flex-col items-center gap-1.5 px-3 text-center">
-              <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-black/5 bg-white/80 text-accent shadow-[0_1px_2px_rgba(0,0,0,0.04)] dark:border-white/10 dark:bg-white/10 dark:text-sky-300">
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-black/5 bg-white/80 text-accent shadow-[0_1px_2px_rgba(0,0,0,0.04)] dark:border-white/10 dark:bg-white/10 dark:text-amber-300">
                 <Icon className="h-5 w-5" strokeWidth={1.8} aria-hidden />
               </span>
               <span className="text-[11px] font-medium leading-snug text-ink-2">{s.label}</span>
@@ -488,7 +488,7 @@ export function TemplatesBand() {
         </p>
         <Link
           href="/templates"
-          className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-accent transition-colors hover:text-accent-dark"
+          className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-accent transition-colors hover:text-accent-dark dark:hover:text-amber-300"
         >
           Browse all templates
           <ArrowRight className="h-4 w-4" aria-hidden />
@@ -530,7 +530,7 @@ export function FinalCTA() {
       <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
         <Link
           href="/login"
-          className="w-full rounded-full bg-accent px-7 py-3 text-center font-semibold text-white shadow-[0_1px_2px_rgba(0,0,0,0.1),0_12px_28px_rgba(0,113,227,0.35)] transition-all hover:bg-accent-dark active:scale-[0.98] sm:w-auto"
+          className="w-full rounded-full bg-accent px-7 py-3 text-center font-semibold text-white shadow-[0_1px_2px_rgba(0,0,0,0.1),0_12px_28px_rgba(180,83,9,0.35)] transition-all hover:bg-accent-dark active:scale-[0.98] sm:w-auto"
         >
           Explore the platform
         </Link>

@@ -11,7 +11,7 @@ export default function LoginPage() {
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden">
       <div className="fog-blob left-[-10%] top-[-12%] h-[520px] w-[520px] bg-accent/30" />
-      <div className="fog-blob right-[-8%] top-[20%] h-[460px] w-[460px] bg-violet/28" />
+      <div className="fog-blob right-[-8%] top-[20%] h-[460px] w-[460px] bg-amber-400/25" />
       <div className="fog-blob bottom-[-16%] left-[35%] h-[560px] w-[560px] bg-accent/18" />
 
       <MarketingNav back="/" backLabel="Back to home" themeToggle={false} />

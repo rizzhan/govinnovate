@@ -188,7 +188,7 @@ export default async function LandingPage() {
     <div className="relative overflow-hidden">
       <AutoRefresh />
       <div className="fog-blob left-[-8%] top-[-10%] h-[520px] w-[520px] bg-accent/25" />
-      <div className="fog-blob right-[-6%] top-[16%] h-[440px] w-[440px] bg-violet/22" />
+      <div className="fog-blob right-[-6%] top-[16%] h-[440px] w-[440px] bg-amber-400/20" />
 
       {/* Glass nav */}
       <MarketingNav />
@@ -212,7 +212,7 @@ export default async function LandingPage() {
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link
               href="/login"
-              className="w-full rounded-full bg-accent px-7 py-3 text-center font-semibold text-white shadow-[0_1px_2px_rgba(0,0,0,0.1),0_12px_28px_rgba(0,113,227,0.4)] transition-all hover:bg-accent-dark active:scale-[0.98] sm:w-auto"
+              className="w-full rounded-full bg-accent px-7 py-3 text-center font-semibold text-white shadow-[0_1px_2px_rgba(0,0,0,0.1),0_12px_28px_rgba(180,83,9,0.4)] transition-all hover:bg-accent-dark active:scale-[0.98] sm:w-auto"
             >
               Explore the platform
             </Link>

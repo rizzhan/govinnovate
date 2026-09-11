@@ -3,8 +3,8 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --color-accent: #0071e3;
-  --color-accent-dark: #005bb8;
+  --color-accent: #b45309;
+  --color-accent-dark: #92400e;
   --color-ink: #1d1d1f;
   --color-ink-2: #6e6e73;
   --color-ink-3: #86868b;
@@ -50,7 +50,7 @@
   --color-ink-3: #8e8e93;
   --color-fog: #1c1c1e;
   --color-glass: rgba(28, 28, 30, 0.6);
-  --color-accent: #0a84ff;
+  --color-accent: #c2570b;
   --color-surface: #1c1c1e;
   --color-surface-2: rgba(255, 255, 255, 0.045);
   --page-bg: #0d0d0f;
@@ -69,7 +69,7 @@
 }
 
 ::selection {
-  background: rgba(0, 113, 227, 0.18);
+  background: rgba(180, 83, 9, 0.2);
 }
 
 html {
@@ -229,7 +229,7 @@ body::after {
 /* ---- Focus & accessibility ------------------------------------------ */
 
 :focus-visible {
-  outline: 2px solid rgba(0, 113, 227, 0.65);
+  outline: 2px solid rgba(180, 83, 9, 0.6);
   outline-offset: 2px;
   border-radius: 6px;
 }

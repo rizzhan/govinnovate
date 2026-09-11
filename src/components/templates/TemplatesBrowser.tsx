@@ -258,7 +258,7 @@ export default function TemplatesBrowser({ templates }: { templates: TemplateRow
                         <button
                           type="button"
                           onClick={() => setOpenId(t.id)}
-                          className="inline-flex items-center gap-1.5 text-sm font-medium text-accent transition-colors hover:text-accent-dark"
+                          className="inline-flex items-center gap-1.5 text-sm font-medium text-accent transition-colors hover:text-accent-dark dark:hover:text-amber-300"
                           aria-haspopup="dialog"
                         >
                           <Eye className="h-4 w-4" aria-hidden />
@@ -382,7 +382,7 @@ function TemplatePreview({ template, onClose }: { template: TemplateRow; onClose
             </button>
             <Link
               href={`/templates/${template.id}`}
-              className="inline-flex items-center gap-1.5 rounded-full bg-accent px-5 py-2 text-sm font-medium text-white shadow-[0_1px_2px_rgba(0,0,0,0.1),0_8px_20px_rgba(0,113,227,0.3)] transition-all hover:bg-accent-dark active:scale-[0.97]"
+              className="inline-flex items-center gap-1.5 rounded-full bg-accent px-5 py-2 text-sm font-medium text-white shadow-[0_1px_2px_rgba(0,0,0,0.1),0_8px_20px_rgba(180,83,9,0.3)] transition-all hover:bg-accent-dark active:scale-[0.97]"
             >
               Open full template
               <ArrowRight className="h-4 w-4" aria-hidden />

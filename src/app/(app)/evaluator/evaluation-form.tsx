@@ -40,7 +40,7 @@ export function EvaluationForm({ application }: { application: { id: number; sta
             type="submit"
             name="recommendation"
             value="shortlist"
-            className="inline-flex items-center justify-center gap-1.5 rounded-full bg-accent px-4 py-2 text-sm font-medium text-white shadow-[0_1px_2px_rgba(0,0,0,0.1),0_8px_20px_rgba(0,113,227,0.3)] transition-all hover:bg-accent-dark active:scale-[0.97]"
+            className="inline-flex items-center justify-center gap-1.5 rounded-full bg-accent px-4 py-2 text-sm font-medium text-white shadow-[0_1px_2px_rgba(0,0,0,0.1),0_8px_20px_rgba(180,83,9,0.3)] transition-all hover:bg-accent-dark active:scale-[0.97]"
           >
             <Check className="h-4 w-4" aria-hidden />
             Shortlist

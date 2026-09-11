@@ -9,7 +9,7 @@ const btnBase =
 
 const btnVariants: Record<string, string> = {
   primary:
-    "bg-accent text-white shadow-[0_1px_2px_rgba(0,0,0,0.1),0_8px_20px_rgba(0,113,227,0.35)] hover:bg-accent-dark hover:shadow-[0_2px_4px_rgba(0,0,0,0.12),0_12px_28px_rgba(0,113,227,0.45)]",
+    "bg-accent text-white shadow-[0_1px_2px_rgba(0,0,0,0.1),0_8px_20px_rgba(180,83,9,0.35)] hover:bg-accent-dark hover:shadow-[0_2px_4px_rgba(0,0,0,0.12),0_12px_28px_rgba(180,83,9,0.45)]",
   secondary:
     "glass-chip text-ink hover:bg-white/80 hover:-translate-y-px dark:text-white/90",
   ghost:
@@ -98,7 +98,7 @@ export type Tone = "neutral" | "info" | "violet" | "success" | "warning" | "dang
 
 const toneStyles: Record<Tone, string> = {
   neutral: "bg-black/5 text-ink-2 dark:bg-white/10 dark:text-white/65",
-  info: "bg-accent/10 text-accent-dark dark:bg-accent/20 dark:text-sky-300",
+  info: "bg-accent/10 text-accent-dark dark:bg-accent/20 dark:text-amber-300",
   violet: "bg-violet/10 text-violet dark:bg-violet/25 dark:text-[#a5a5ff]",
   success: "bg-verified/15 text-[#1f8a3d] dark:bg-verified/20 dark:text-[#32d74b]",
   warning: "bg-pending/15 text-[#9a4a00] dark:bg-pending/20 dark:text-[#ffd60a]",

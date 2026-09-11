@@ -32,7 +32,7 @@ export default function MobileNav({ items }: { items: MobileNavItem[] }) {
                 aria-current={active ? "page" : undefined}
                 className={`flex flex-col items-center gap-0.5 rounded-2xl px-3 py-1.5 text-[10px] font-semibold transition-all duration-200 ${
                   active
-                    ? "bg-accent/12 text-accent dark:bg-accent/20 dark:text-sky-300"
+                    ? "bg-accent/12 text-accent dark:bg-accent/20 dark:text-amber-300"
                     : "text-ink-2 hover:bg-black/5 hover:text-ink dark:text-white/55 dark:hover:bg-white/10 dark:hover:text-white"
                 }`}
               >

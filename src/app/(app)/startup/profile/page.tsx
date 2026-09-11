@@ -92,7 +92,7 @@ export default async function StartupProfilePage() {
                     href={a.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex max-w-full items-center gap-1 truncate text-xs text-accent hover:text-accent-dark"
+                    className="inline-flex max-w-full items-center gap-1 truncate text-xs text-accent hover:text-accent-dark dark:hover:text-amber-300"
                   >
                     <span className="truncate">{String(a.url).replace(/^https?:\/\//, "")}</span>
                     <ExternalLink className="h-3 w-3 shrink-0" aria-hidden />

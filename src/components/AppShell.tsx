@@ -213,7 +213,7 @@ export default function AppShell({
               <span className="text-[15px] font-semibold tracking-tight text-ink">GovInnovate</span>
             </div>
               <div className="hidden items-center gap-4 lg:flex">
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/40 px-3.5 py-1 text-xs font-medium text-accent backdrop-blur dark:border-white/10 dark:bg-white/10 dark:text-sky-300">
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/40 px-3.5 py-1 text-xs font-medium text-accent backdrop-blur dark:border-white/10 dark:bg-white/10 dark:text-amber-300">
                 {roleLabels[user.role]} Portal
               </span>
             </div>

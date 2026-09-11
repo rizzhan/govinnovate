@@ -102,7 +102,7 @@ export default function Lifecycle() {
                   aria-controls={`m-life-${s.n}`}
                   className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border transition-all duration-200 ${
                     open
-                      ? "border-accent/40 bg-accent text-white shadow-[0_6px_16px_rgba(0,113,227,0.3)]"
+                      ? "border-accent/40 bg-accent text-white shadow-[0_6px_16px_rgba(180,83,9,0.3)]"
                       : "border-black/10 bg-white/70 text-ink-2 dark:border-white/10 dark:bg-white/5 dark:text-white/70"
                   }`}
                 >

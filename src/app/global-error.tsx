@@ -21,7 +21,7 @@ export default function GlobalError({
             onClick={reset}
             style={{
               marginTop: 16, padding: "10px 24px", borderRadius: 999, border: 0,
-              background: "#0a84ff", color: "#fff", fontWeight: 600, cursor: "pointer",
+              background: "#B45309", color: "#fff", fontWeight: 600, cursor: "pointer",
             }}
           >
             Reload

@@ -22,7 +22,7 @@ export default async function MarketingNav({
 }) {
   const user = back ? null : await getCurrentUser();
   const primaryCls =
-    "inline-flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-sm font-medium text-white shadow-[0_1px_2px_rgba(0,0,0,0.1),0_8px_20px_rgba(0,113,227,0.35)] transition-colors hover:bg-accent-dark active:scale-[0.97]";
+    "inline-flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 text-sm font-medium text-white shadow-[0_1px_2px_rgba(0,0,0,0.1),0_8px_20px_rgba(180,83,9,0.35)] transition-colors hover:bg-accent-dark active:scale-[0.97]";
   return (
     <header className="relative z-10 mx-auto max-w-6xl px-6 pt-5">
       <nav className="glass flex items-center justify-between rounded-full py-2.5 pl-4 pr-2.5 sm:py-2">

@@ -21,7 +21,7 @@ export default async function TemplatesPage() {
   return (
     <div className="relative min-h-screen overflow-hidden">
       <div className="fog-blob left-[-8%] top-[-10%] h-[480px] w-[480px] bg-accent/25" />
-      <div className="fog-blob right-[-6%] top-[30%] h-[420px] w-[420px] bg-violet/22" />
+      <div className="fog-blob right-[-6%] top-[30%] h-[420px] w-[420px] bg-amber-400/20" />
 
       <MarketingNav />
 
@@ -56,7 +56,7 @@ export default async function TemplatesPage() {
             </p>
             <Link
               href="/"
-              className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-accent transition-colors hover:text-accent-dark"
+              className="mt-5 inline-flex items-center gap-1.5 text-sm font-medium text-accent transition-colors hover:text-accent-dark dark:hover:text-amber-300"
             >
               How the mechanism works
               <ArrowRight className="h-4 w-4" aria-hidden />
