@@ -155,7 +155,7 @@ export function PilotPreview({
   return (
     <div className="glass rounded-3xl p-6">
       <div className="mb-4 flex items-center justify-between gap-3">
-        <p className="truncate text-sm font-semibold tracking-tight text-ink" title={title}>
+        <p className="truncate text-sm font-semibold tracking-tight text-ink">
           {title}
         </p>
         {status ? (

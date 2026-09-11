@@ -28,7 +28,6 @@ export function ThemeToggle({ light = false }: { light?: boolean }) {
       type="button"
       onClick={toggle}
       aria-label="Toggle color theme"
-      title="Toggle color theme"
       className={base}
     >
       <Sun className="hidden h-4 w-4 dark:inline" aria-hidden />

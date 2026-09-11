@@ -77,7 +77,7 @@ export default async function AdminAudit() {
                       {e.entity}
                       {e.entity_id !== undefined ? ` #${e.entity_id}` : ""}
                     </td>
-                    <td className="max-w-xs truncate py-2.5 text-xs text-ink-3" title={metaSummary(e.meta)}>
+                    <td className="max-w-xs truncate py-2.5 text-xs text-ink-3">
                       {metaSummary(e.meta) || "—"}
                     </td>
                   </tr>

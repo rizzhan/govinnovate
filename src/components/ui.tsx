@@ -83,7 +83,6 @@ export function IconButton({
     <button
       type="button"
       aria-label={label}
-      title={label}
       onClick={onClick}
       className={`inline-flex h-9 w-9 items-center justify-center rounded-full text-ink-2 transition-colors hover:bg-black/5 hover:text-ink active:scale-95 dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white ${className}`}
     >
