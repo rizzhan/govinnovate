@@ -227,7 +227,7 @@ export default function AppShell({
               <form action={logout}>
                 <button
                   type="submit"
-                  className="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white/70 px-3.5 py-2 text-sm font-medium text-ink backdrop-blur transition-colors hover:bg-white active:scale-[0.97] dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white/70 px-3.5 py-2 text-sm font-medium text-[#c22f2f] backdrop-blur transition-colors hover:bg-critical/10 active:scale-[0.97] dark:border-white/10 dark:bg-white/10 dark:hover:bg-critical/15"
                 >
                   <LogOut className="h-4 w-4" aria-hidden />
                   <span className="hidden sm:inline">Sign out</span>
