@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, BadgeCheck, Building2, ClipboardCheck } from "lucide-react";
 import { getTemplates } from "@/lib/data";
 import MarketingNav from "@/components/MarketingNav";
+import Reveal from "@/components/Reveal";
 import TemplatesBrowser, { type TemplateRow } from "@/components/templates/TemplatesBrowser";
 
 // Database-backed: always render fresh (and never query at build time).
@@ -27,24 +28,33 @@ export default async function TemplatesPage() {
 
       <main className="relative z-10 mx-auto max-w-6xl px-6 pb-20 pt-10 sm:pt-12">
         <div className="max-w-2xl">
-          <p className="inline-flex items-center gap-2 rounded-full border border-black/5 bg-white/60 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-accent backdrop-blur dark:border-white/10 dark:bg-white/5">
+          <p className="animate-fade-up inline-flex items-center gap-2 rounded-full border border-black/5 bg-white/60 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-accent backdrop-blur dark:border-white/10 dark:bg-white/5">
             Resource library
           </p>
-          <h1 className="mt-4 text-4xl font-semibold tracking-tight text-balance text-ink sm:text-5xl">
+          <h1
+            className="animate-fade-up mt-4 text-4xl font-semibold tracking-tight text-balance text-ink sm:text-5xl"
+            style={{ animationDelay: "90ms" }}
+          >
             Standard Templates
           </h1>
-          <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-ink-2">
+          <p
+            className="animate-fade-up mt-4 max-w-xl text-[15px] leading-relaxed text-ink-2"
+            style={{ animationDelay: "180ms" }}
+          >
             Ready-to-use templates for every stage of the innovation procurement pathway — from defining
             outcome-based challenges to evaluating startups, structuring pilots, managing risk, and
             scaling validated solutions.
           </p>
         </div>
 
-        <div className="mt-10">
-          <TemplatesBrowser templates={templates} />
+        <div className="animate-fade-up mt-10" style={{ animationDelay: "270ms" }}>
+          <Reveal delay={120}>
+            <TemplatesBrowser templates={templates} />
+          </Reveal>
         </div>
 
-        <section className="mt-16 grid gap-8 rounded-[1.75rem] border border-black/5 bg-white/60 p-7 sm:p-9 lg:grid-cols-2 dark:border-white/10 dark:bg-white/5" aria-label="About this library">
+        <Reveal>
+          <section className="mt-16 grid gap-8 rounded-[1.75rem] border border-black/5 bg-white/60 p-7 sm:p-9 lg:grid-cols-2 dark:border-white/10 dark:bg-white/5" aria-label="About this library">
           <div>
             <h2 className="text-xl font-semibold tracking-tight text-ink">
               One library for the entire journey
@@ -81,8 +91,9 @@ export default async function TemplatesPage() {
                 </li>
               );
             })}
-          </ul>
-        </section>
+</ul>
+          </section>
+        </Reveal>
       </main>
 
       <footer className="relative z-10 border-t border-black/5 py-10 text-center text-sm text-ink-3 dark:border-white/5">
