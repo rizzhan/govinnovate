@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { BadgeCheck, Gauge, ShieldCheck, Stamp, TrendingUp } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import MarketingNav from "@/components/MarketingNav";
 import {
   getAllUsers,
+  getApplication,
   getApplications,
   getChallenges,
   getEvaluationsForApplication,
@@ -12,7 +14,9 @@ import {
   getStats,
   getTemplates,
 } from "@/lib/data";
+import { formatINR, scaleDecisionLabels } from "@/lib/format";
 import Lifecycle from "@/components/landing/Lifecycle";
+import AutoRefresh from "@/components/landing/AutoRefresh";
 import {
   FinalCTA,
   FlowStrip,
@@ -74,6 +78,27 @@ export default async function LandingPage() {
   const paidTotal = milestones.reduce((s, m) => s + (m.status === "paid" ? Number(m.amount) : 0), 0);
   const verifiedTotal = milestones.filter((m) => m.status === "verified").length;
 
+  // Everything below is computed from live records — no display literals.
+  const totalTranches = milestones.length;
+  const paidCount = milestones.filter((m) => m.status === "paid").length;
+  const clearedCount = milestones.filter((m) => m.status === "paid" || m.status === "verified").length;
+  const pilotBudget = Number(pilot?.budget || 0);
+  const completionPct = totalTranches > 0 ? Math.round((paidCount / totalTranches) * 100) : 0;
+
+  const sourceApplication = pilot ? await getApplication(pilot.application_id) : undefined;
+  const eligibilityValue = !sourceApplication
+    ? "Pending"
+    : ["shortlisted", "selected"].includes(sourceApplication.status)
+      ? "Verified"
+      : "In review";
+
+  const validatedPilotIds = new Set<number>();
+  await Promise.all(
+    pilots.map(async (p) => {
+      if (await getScaleUpDecision(p.id)) validatedPilotIds.add(p.id);
+    })
+  );
+
   let evalRecord: EvalRecord | null = null;
   if (pilot) {
     const evals = await getEvaluationsForApplication(pilot.application_id);
@@ -100,21 +125,49 @@ export default async function LandingPage() {
     }
   }
 
-  const kpis: KpiRow[] = [
-    { kpi: "Sensor uptime", target: "95%", actual: "96%", onTrack: true },
-    { kpi: "Alert time", target: "≤ 15 min", actual: "< 12 min", onTrack: true },
-    { kpi: "Coverage", target: "5 lakes", actual: "5 lakes", onTrack: true },
-  ];
+  const kpis: KpiRow[] =
+    !pilot || totalTranches === 0
+      ? []
+      : [
+          {
+            kpi: "Tranches paid",
+            target: `${totalTranches} tranches`,
+            actual: `${paidCount} paid`,
+            onTrack: paidCount === totalTranches,
+          },
+          {
+            kpi: "Budget released",
+            target: formatINR(pilotBudget),
+            actual: formatINR(paidTotal),
+            onTrack: paidTotal >= pilotBudget,
+          },
+          {
+            kpi: "Independently cleared",
+            target: `${totalTranches} tranches`,
+            actual: `${clearedCount} cleared`,
+            onTrack: clearedCount === totalTranches,
+          },
+        ];
 
-  const transparencyRecord = evalRecord && pilot
-    ? [
-        { icon: BadgeCheck, label: "Eligibility", value: "Verified", tone: "success" as const },
-        { icon: Gauge, label: "Technical score", value: `${Math.round(evalRecord.average * 10)} / 100`, tone: "success" as const },
-        { icon: TrendingUp, label: "Pilot performance", value: "96%", tone: "success" as const },
-        { icon: ShieldCheck, label: "Independent validation", value: "Complete", tone: "success" as const },
-        { icon: Stamp, label: "Procurement recommendation", value: "Scale recommended", tone: "success" as const },
-      ]
-    : null;
+  const transparencyRecord: { icon: LucideIcon; label: string; value: string; tone: "success" | "neutral" }[] | null =
+    evalRecord && pilot
+      ? [
+          { icon: BadgeCheck, label: "Eligibility", value: eligibilityValue, tone: eligibilityValue === "Verified" ? "success" : "neutral" },
+          { icon: Gauge, label: "Technical score", value: `${Math.round(evalRecord.average * 10)} / 100`, tone: "success" },
+          { icon: TrendingUp, label: "Milestone completion", value: `${completionPct}%`, tone: completionPct === 100 ? "success" : "neutral" },
+          { icon: ShieldCheck, label: "Independent validation", value: scaleDecision ? "Complete" : "Pending", tone: scaleDecision ? "success" : "neutral" },
+          { icon: Stamp, label: "Procurement recommendation", value: scaleDecision ? (scaleDecisionLabels[scaleDecision.decision] ?? scaleDecision.decision) : "Pending", tone: scaleDecision ? "success" : "neutral" },
+        ]
+      : null;
+
+  const funnelSteps = [
+    { n: String(stats.challenges), label: "Challenges", sub: "problems framed" },
+    { n: String(stats.applications), label: "Applications", sub: "solutions proposed" },
+    { n: String(stats.eligible), label: "Eligible", sub: "passed screening" },
+    { n: String(stats.pilots), label: "Pilots", sub: "under contract" },
+    { n: String(validatedPilotIds.size), label: "Validated", sub: "independently measured" },
+    { n: String(stats.scaled), label: "Scaled", sub: "districts live" },
+  ];
 
   const provenance =
     evalRecord && pilot
@@ -123,6 +176,7 @@ export default async function LandingPage() {
 
   return (
     <div className="relative overflow-hidden">
+      <AutoRefresh />
       <div className="fog-blob left-[-8%] top-[-10%] h-[520px] w-[520px] bg-accent/25" />
       <div className="fog-blob right-[-6%] top-[16%] h-[440px] w-[440px] bg-violet/22" />
 
@@ -189,7 +243,7 @@ export default async function LandingPage() {
             sub="Departments enter with a problem. Startups exit with a scale contract. Every drop-off point is a conscious, auditable decision."
           />
           <div className="mt-12">
-            <Funnel />
+            <Funnel steps={funnelSteps} />
           </div>
         </div>
       </section>

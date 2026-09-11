@@ -168,6 +168,11 @@ export function PilotPreview({
         </StatusBadge>
       </div>
       <div className="overflow-hidden rounded-2xl border border-black/8 dark:border-white/10">
+        {kpis.length === 0 ? (
+          <p className="bg-white/60 px-3.5 py-4 text-[13px] text-ink-3 dark:bg-white/5">
+            No milestones recorded yet — performance figures appear once the pilot defines tranches.
+          </p>
+        ) : (
         <table className="w-full text-left text-[13px]">
           <thead>
             <tr className="border-b border-black/8 bg-black/5 text-[11px] uppercase tracking-wide text-ink-3 dark:border-white/10 dark:bg-white/5">
@@ -192,6 +197,7 @@ export function PilotPreview({
             ))}
           </tbody>
         </table>
+        )}
       </div>
       <div className="mt-4 flex items-center justify-between gap-3">
         <span className="inline-flex items-center gap-1.5 text-xs text-ink-2">

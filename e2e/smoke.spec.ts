@@ -11,6 +11,17 @@ test("landing renders the mechanism and product previews", async ({ page }) => {
   await expect(page.getByText("Challenge dashboard")).toBeVisible();
 });
 
+test("landing previews compute live from the database", async ({ page }) => {
+  await page.goto("/");
+  // Milestone-derived KPI rows (seeded pilot: 4 tranches, 2 paid).
+  await expect(page.getByText("Tranches paid")).toBeVisible();
+  await expect(page.getByText("Budget released")).toBeVisible();
+  // Live funnel values from the seeded workspace.
+  await expect(page.getByText("this funnel moves with the data")).toBeVisible();
+  // Derived transparency record.
+  await expect(page.getByText("Milestone completion")).toBeVisible();
+});
+
 test("templates library: search, filter, preview, detail", async ({ page }) => {
   await page.goto("/templates");
   await expect(page.getByRole("heading", { name: "Standard Templates" })).toBeVisible();

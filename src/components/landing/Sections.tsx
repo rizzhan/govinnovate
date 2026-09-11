@@ -122,16 +122,9 @@ export function FlowStrip() {
 
 /* ---- Pipeline funnel (example values, clearly labelled) ----------------- */
 
-const funnelSteps: { n: string; label: string; sub: string }[] = [
-  { n: "42", label: "Challenges", sub: "problems framed" },
-  { n: "318", label: "Startups discovered", sub: "matched to demand" },
-  { n: "76", label: "Eligible", sub: "passed screening" },
-  { n: "24", label: "Pilots", sub: "under contract" },
-  { n: "11", label: "Validated", sub: "independently measured" },
-  { n: "7", label: "Scaled", sub: "districts live" },
-];
+export type FunnelStep = { n: string; label: string; sub: string };
 
-export function Funnel() {
+export function Funnel({ steps }: { steps: FunnelStep[] }) {
   return (
     <div className="relative">
       <div
@@ -139,7 +132,7 @@ export function Funnel() {
         aria-hidden
       />
       <div className="grid grid-cols-2 gap-x-4 gap-y-9 pt-6 sm:grid-cols-3 lg:grid-cols-6">
-        {funnelSteps.map((f, i) => (
+        {steps.map((f, i) => (
           <div key={f.label} className="relative">
             <span
               className="absolute -top-[1.19rem] left-0 h-2 w-px bg-black/15 dark:bg-white/20"
@@ -155,8 +148,8 @@ export function Funnel() {
         ))}
       </div>
       <p className="mt-8 text-[13px] leading-relaxed text-ink-3">
-        Representative example figures to illustrate the funnel. The live demo workspace runs on a seeded
-        dataset — every stage above is an auditable record inside the product, not a claim.
+        Live values from the demo workspace — act in the portals and this funnel moves with the data.
+        Every stage above is an auditable record inside the product, not a claim.
       </p>
     </div>
   );
