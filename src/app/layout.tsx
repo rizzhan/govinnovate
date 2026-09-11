@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeInit } from "@/components/ThemeToggle";
+import BootSplash from "@/components/BootSplash";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -32,6 +33,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col">
         <ThemeInit nonce={nonce} />
+        <BootSplash />
         {children}
       </body>
     </html>

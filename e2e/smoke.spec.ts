@@ -6,6 +6,7 @@ import { expect, test } from "@playwright/test";
  */
 test("landing renders the mechanism and product previews", async ({ page }) => {
   await page.goto("/");
+  await expect(page.getByTestId("boot-splash")).toBeHidden({ timeout: 10000 });
   await expect(page.getByRole("heading", { name: /startup-friendly pathway/i })).toBeVisible();
   await expect(page.getByRole("heading", { name: /nine stages/i })).toBeVisible();
   await expect(page.getByText("Challenge dashboard")).toBeVisible();
