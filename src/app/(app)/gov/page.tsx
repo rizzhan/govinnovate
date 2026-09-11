@@ -48,7 +48,7 @@ export default async function GovDashboard() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Active Challenges" value={challenges.length} icon={Target} />
+        <StatCard label="Challenges" value={challenges.length} icon={Target} />
         <StatCard label="Open for Applications" value={openChallenges} icon={Radar} accent="bg-violet/10 text-violet" />
         <StatCard label="Pilots Running" value={activePilots} icon={FlaskConical} accent="bg-pending/15 text-[#9a4a00]" />
         <StatCard label="Scaling Solutions" value={scaling} icon={Rocket} accent="bg-verified/15 text-[#1f8a3d]" />

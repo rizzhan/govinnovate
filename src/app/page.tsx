@@ -48,6 +48,11 @@ export default async function LandingPage() {
   const templates = await getTemplates();
 
   const eligible = applications.filter((a) => a.status !== "rejected" && a.status !== "withdrawn").length;
+  const eligibleStartups = new Set(
+    applications
+      .filter((a) => a.status !== "rejected" && a.status !== "withdrawn")
+      .map((a) => a.startup_user_id)
+  ).size;
   const scaled = challenges.filter((c) => c.status === "scaling").length;
   const openChallenges = challenges.filter((c) => c.status === "open").length;
 
@@ -60,6 +65,7 @@ export default async function LandingPage() {
     challenges: raw.challenges,
     applications: raw.applications,
     eligible,
+    eligibleStartups,
     startups: raw.startups,
     pilots: raw.pilots,
     scaled,
@@ -86,6 +92,9 @@ export default async function LandingPage() {
   const completionPct = totalTranches > 0 ? Math.round((paidCount / totalTranches) * 100) : 0;
 
   const sourceApplication = pilot ? await getApplication(pilot.application_id) : undefined;
+  const pilotChallenge = pilot ? challenges.find((c) => c.id === pilot.challenge_id) : undefined;
+  const dashboardSubtitle =
+    pilotChallenge?.department ?? challenges[0]?.department ?? "Demo workspace";
   const eligibilityValue = !sourceApplication
     ? "Pending"
     : ["shortlisted", "selected"].includes(sourceApplication.status)
@@ -120,6 +129,7 @@ export default async function LandingPage() {
           org: e.evaluator_org ?? "",
           recommendation: e.recommendation ?? "",
           comment: e.comments ?? "",
+          applicationStatus: sourceApplication?.status ?? "submitted",
         };
       }
     }
@@ -163,7 +173,7 @@ export default async function LandingPage() {
   const funnelSteps = [
     { n: String(stats.challenges), label: "Challenges", sub: "problems framed" },
     { n: String(stats.applications), label: "Applications", sub: "solutions proposed" },
-    { n: String(stats.eligible), label: "Eligible", sub: "passed screening" },
+    { n: String(stats.eligible), label: "Eligible applications", sub: "passed screening" },
     { n: String(stats.pilots), label: "Pilots", sub: "under contract" },
     { n: String(validatedPilotIds.size), label: "Validated", sub: "independently measured" },
     { n: String(stats.scaled), label: "Scaled", sub: "districts live" },
@@ -271,11 +281,12 @@ export default async function LandingPage() {
             sub="Live views from the demo workspace — seeded with walkable figures so every number is traceable in the product."
           />
           <div className="mt-12 grid items-start gap-5 lg:grid-cols-[1.05fr_0.95fr]">
-            <DashboardPreview stats={stats} totalContracted={totalContracted} />
+            <DashboardPreview stats={stats} totalContracted={totalContracted} subtitle={dashboardSubtitle} />
             <div className="space-y-5">
               <EvaluationPreview record={evalRecord} />
               <PilotPreview
                 title={pilot ? pilot.title : "Pilot · KPIs"}
+                status={pilot?.status ?? ""}
                 kpis={kpis}
                 paidValue={paidTotal}
                 verifiedValue={verifiedTotal}

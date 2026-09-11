@@ -5,12 +5,11 @@ import {
   FlaskConical,
   Gauge,
   Inbox,
-  ShieldCheck,
   Target,
   TrendingUp,
 } from "lucide-react";
 import { StatusBadge } from "@/components/ui";
-import { formatINR } from "@/lib/format";
+import { applicationStatusLabels, applicationStatusTone, formatINR, pilotStatusLabels, pilotStatusTone } from "@/lib/format";
 import type { LandingStats } from "./Sections";
 
 /* ---- Challenge dashboard preview ---------------------------------------- */
@@ -18,14 +17,16 @@ import type { LandingStats } from "./Sections";
 export function DashboardPreview({
   stats,
   totalContracted,
+  subtitle,
 }: {
   stats: LandingStats;
   totalContracted: number;
+  subtitle: string;
 }) {
   const cells = [
     { icon: Target, label: "Active challenges", value: stats.challenges, accent: "bg-accent/10 text-accent" },
     { icon: Inbox, label: "Applications", value: stats.applications, accent: "bg-violet/10 text-violet" },
-    { icon: BadgeCheck, label: "Eligible startups", value: stats.eligible, accent: "bg-verified/15 text-[#1f8a3d]" },
+    { icon: BadgeCheck, label: "Eligible startups", value: stats.eligibleStartups, accent: "bg-verified/15 text-[#1f8a3d]" },
     { icon: FlaskConical, label: "Active pilots", value: stats.pilots, accent: "bg-pending/15 text-[#9a4a00]" },
   ];
   return (
@@ -33,7 +34,7 @@ export function DashboardPreview({
       <div className="mb-5 flex items-center justify-between gap-3">
         <div>
           <p className="text-sm font-semibold tracking-tight text-ink">Challenge dashboard</p>
-          <p className="text-xs text-ink-3">Smart Cities Mission · Ministry of Urban Development</p>
+          <p className="text-xs text-ink-3">{subtitle}</p>
         </div>
         <span className="inline-flex items-center gap-1.5 rounded-full bg-verified/15 px-2.5 py-1 text-[11px] font-medium text-[#1f8a3d] dark:bg-verified/20 dark:text-[#32d74b]">
           <span className="h-1.5 w-1.5 rounded-full bg-verified" aria-hidden />
@@ -78,15 +79,8 @@ export type EvalRecord = {
   org: string;
   recommendation: string;
   comment: string;
+  applicationStatus: string;
 };
-
-const evalMeta: { label: string; weight: string }[] = [
-  { label: "Innovation & novelty", weight: "20%" },
-  { label: "Feasibility & readiness", weight: "25%" },
-  { label: "Expected impact", weight: "20%" },
-  { label: "Scalability", weight: "20%" },
-  { label: "Cost & viability", weight: "15%" },
-];
 
 export function EvaluationPreview({ record }: { record: EvalRecord | null }) {
   return (
@@ -94,15 +88,15 @@ export function EvaluationPreview({ record }: { record: EvalRecord | null }) {
       <div className="mb-4 flex items-center justify-between gap-3">
         <p className="text-sm font-semibold tracking-tight text-ink">Expert evaluation</p>
         {record && (
-          <StatusBadge tone="info" icon={ShieldCheck}>
-            Shortlisted
+          <StatusBadge tone={applicationStatusTone[record.applicationStatus] ?? "neutral"}>
+            {applicationStatusLabels[record.applicationStatus] ?? record.applicationStatus}
           </StatusBadge>
         )}
       </div>
       {record ? (
         <>
           <div className="space-y-2.5">
-            {record.criteria.map((c, i) => (
+            {record.criteria.map((c) => (
               <div key={c.label} className="flex items-center gap-3">
                 <span className="w-36 shrink-0 text-xs text-ink-2">{c.label}</span>
                 <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-black/8 dark:bg-white/10">
@@ -114,12 +108,11 @@ export function EvaluationPreview({ record }: { record: EvalRecord | null }) {
                 <span className="w-8 shrink-0 text-right text-xs font-semibold text-ink tabular-nums">
                   {c.score.toFixed(1)}
                 </span>
-                <span className="hidden w-9 shrink-0 text-right text-[11px] text-ink-3 sm:block">{evalMeta[i]?.weight}</span>
               </div>
             ))}
           </div>
           <div className="mt-4 flex items-center justify-between rounded-2xl bg-accent/8 px-4 py-2.5 dark:bg-accent/15">
-            <span className="text-xs text-ink-2">Weighted average</span>
+            <span className="text-xs text-ink-2">Average</span>
             <span className="text-sm font-semibold text-accent tabular-nums">
               {record.average.toFixed(1)} / 10 · {Math.round(record.average * 10)} / 100
             </span>
@@ -146,12 +139,14 @@ const PilotNote = Activity;
 
 export function PilotPreview({
   title,
+  status,
   kpis,
   paidValue,
   verifiedValue,
   scaleNote,
 }: {
   title: string;
+  status: string;
   kpis: KpiRow[];
   paidValue: number;
   verifiedValue: number;
@@ -163,9 +158,11 @@ export function PilotPreview({
         <p className="truncate text-sm font-semibold tracking-tight text-ink" title={title}>
           {title}
         </p>
-        <StatusBadge tone="violet" icon={FlaskConical}>
-          Piloting
-        </StatusBadge>
+        {status ? (
+          <StatusBadge tone={pilotStatusTone[status] ?? "neutral"} icon={FlaskConical}>
+            {pilotStatusLabels[status] ?? status}
+          </StatusBadge>
+        ) : null}
       </div>
       <div className="overflow-hidden rounded-2xl border border-black/8 dark:border-white/10">
         {kpis.length === 0 ? (

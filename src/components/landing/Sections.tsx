@@ -259,6 +259,7 @@ export type LandingStats = {
   openChallenges: number;
   applications: number;
   eligible: number;
+  eligibleStartups: number;
   startups: number;
   pilots: number;
   scaled: number;
@@ -284,7 +285,7 @@ const roleDefs: {
     accent: "bg-accent/10 text-accent",
     rows: (s) => [
       { icon: Target, label: "Active challenges", value: s.challenges },
-      { icon: Inbox, label: "Eligible startups", value: s.eligible },
+      { icon: Inbox, label: "Eligible startups", value: s.eligibleStartups },
       { icon: Activity, label: "Pilot monitoring", value: s.pilots },
       { icon: Stamp, label: "Procurement decisions", value: s.scaled },
     ],
@@ -297,7 +298,7 @@ const roleDefs: {
     rows: (s) => [
       { icon: Radar, label: "Open opportunities", value: s.openChallenges },
       { icon: ListChecks, label: "Eligibility", right: "DPIIT-aligned" },
-      { icon: Coins, label: "Milestone payments", value: s.paidMilestones },
+      { icon: Coins, label: "Paid tranches", value: s.paidMilestones },
       { icon: Rocket, label: "Scale pathway", right: "Ready" },
     ],
   },
