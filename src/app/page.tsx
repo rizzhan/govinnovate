@@ -197,20 +197,29 @@ export default async function LandingPage() {
       {/* Hero */}
       <section className="relative z-10 mx-auto max-w-6xl px-6 pb-14 pt-10 sm:pt-14">
         <div className="mx-auto max-w-3xl text-center">
-          <p className="inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/50 px-4 py-1.5 text-xs font-medium text-accent backdrop-blur dark:border-white/10 dark:bg-white/5">
+          <p className="animate-fade-up inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/50 px-4 py-1.5 text-xs font-medium text-accent backdrop-blur dark:border-white/10 dark:bg-white/5">
             <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden />
             Smart India Hackathon 2026 · Startup Procurement
           </p>
-          <h1 className="mt-5 text-balance text-4xl font-semibold leading-[1.08] tracking-[-0.02em] text-ink sm:text-5xl lg:text-6xl">
+          <h1
+            className="animate-fade-up mt-5 text-balance text-4xl font-semibold leading-[1.08] tracking-[-0.02em] text-ink sm:text-5xl lg:text-6xl"
+            style={{ animationDelay: "90ms" }}
+          >
             A startup-friendly pathway from <span className="text-gradient">problem</span> to{" "}
             <span className="text-gradient">government scale</span>.
           </h1>
-          <p className="mx-auto mt-5 max-w-2xl text-[17px] leading-relaxed text-ink-2">
+          <p
+            className="animate-fade-up mx-auto mt-5 max-w-2xl text-[17px] leading-relaxed text-ink-2"
+            style={{ animationDelay: "180ms" }}
+          >
             One transparent, competitive and compliant mechanism for departments to identify, pilot, procure
             and scale innovative solutions — and for startups to win time-bound, milestone-paid contracts
             without prior-turnover barriers.
           </p>
-          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <div
+            className="animate-fade-up mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row"
+            style={{ animationDelay: "270ms" }}
+          >
             <Link
               href="/login"
               className="w-full rounded-full bg-accent px-7 py-3 text-center font-semibold text-white shadow-[0_1px_2px_rgba(0,0,0,0.1),0_12px_28px_rgba(180,83,9,0.4)] transition-all hover:bg-accent-dark active:scale-[0.98] sm:w-auto"
@@ -226,7 +235,7 @@ export default async function LandingPage() {
           </div>
         </div>
 
-        <div className="mx-auto mt-12 max-w-4xl">
+        <div className="animate-fade-up mx-auto mt-12 max-w-4xl" style={{ animationDelay: "360ms" }}>
           <FlowStrip />
         </div>
       </section>
