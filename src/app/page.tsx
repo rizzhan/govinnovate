@@ -197,9 +197,9 @@ export default async function LandingPage() {
       {/* Hero */}
       <section className="relative z-10 mx-auto max-w-6xl px-6 pb-14 pt-10 sm:pt-14">
         <div className="mx-auto max-w-3xl text-center">
-          <p className="animate-fade-up inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/50 px-4 py-1.5 text-xs font-medium text-accent backdrop-blur dark:border-white/10 dark:bg-white/5">
-            <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden />
-            Smart India Hackathon 2026 · Startup Procurement
+          <p className="animate-fade-up inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/70 px-4 py-1.5 text-xs font-medium text-ink-2 backdrop-blur dark:border-white/10 dark:bg-white/5 dark:text-white/70">
+            <ShieldCheck className="h-3.5 w-3.5 text-verified" aria-hidden />
+            Startup Procurement Platform · Smart India Hackathon 2026
           </p>
           <h1
             className="animate-fade-up mt-5 text-balance text-4xl font-semibold leading-[1.08] tracking-[-0.02em] text-ink sm:text-5xl lg:text-6xl"
