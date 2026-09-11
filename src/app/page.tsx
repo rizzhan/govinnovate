@@ -186,7 +186,7 @@ export default async function LandingPage() {
       : "Demo workspace not loaded yet — sign in to populate records.";
 
   return (
-    <div className="relative overflow-hidden">
+    <div className="relative select-none overflow-hidden">
       <AutoRefresh />
       <div className="fog-blob left-[-8%] top-[-10%] h-[520px] w-[520px] bg-accent/25" />
       <div className="fog-blob right-[-6%] top-[16%] h-[440px] w-[440px] bg-amber-400/20" />
