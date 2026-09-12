@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   ArrowRight,
   ChevronRight,
@@ -295,16 +296,17 @@ function TemplatePreview({ template, onClose }: { template: TemplateRow; onClose
   const status = STATUS[template.title] ?? defaultStatus;
   const sections = parseSections(template.content ?? "");
 
-  return (
+  return createPortal(
     <div
-      className="animate-fade-in fixed inset-0 z-50 flex items-end justify-center bg-black/45 p-4 backdrop-blur-sm sm:items-center"
+      className="animate-fade-in fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-md"
       role="dialog"
       aria-modal="true"
       aria-label={`${template.title} preview`}
       onClick={onClose}
     >
+      <div className="flex min-h-full items-center justify-center p-4 sm:p-6">
       <div
-        className="animate-fade-up max-h-[88vh] w-full max-w-2xl overflow-y-auto rounded-[1.75rem] border border-black/10 bg-white p-6 shadow-[0_24px_64px_rgba(0,0,0,0.25)] sm:p-8 dark:border-white/10 dark:bg-[#1c1c1e]"
+        className="animate-fade-up m-auto max-h-[88dvh] w-full max-w-2xl overflow-y-auto rounded-[1.75rem] border border-black/10 bg-white p-6 shadow-[0_24px_64px_rgba(0,0,0,0.35)] sm:p-8 dark:border-white/10 dark:bg-[#1c1c1e]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-4">
@@ -390,6 +392,8 @@ function TemplatePreview({ template, onClose }: { template: TemplateRow; onClose
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </div>,
+    document.body
   );
 }

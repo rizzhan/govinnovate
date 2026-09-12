@@ -229,7 +229,6 @@ body::after {
   transition:
     opacity 0.7s ease-out,
     transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: opacity, transform;
 }
 
 .reveal.is-visible {
@@ -348,9 +347,6 @@ select option {
   border-color: rgba(255, 255, 255, 0.09);
 }
 
-.dark .bg-white {
-  background-color: rgba(255, 255, 255, 0.09);
-}
 .dark .bg-white\/80 {
   background-color: rgba(255, 255, 255, 0.11);
 }
@@ -359,9 +355,6 @@ select option {
 }
 .dark .bg-white\/60 {
   background-color: rgba(255, 255, 255, 0.09);
-}
-.dark .bg-white\/55 {
-  background-color: rgba(255, 255, 255, 0.08);
 }
 .dark .bg-white\/50 {
   background-color: rgba(255, 255, 255, 0.08);
